@@ -4,6 +4,11 @@ import SearchBar from "../components/SearchBar";
 import PropertyCard from "../components/PropertyCard";
 import Categories from "../components/Categories";
 import WhyChooseUs from "../components/WhyChooseUs";
+import Stats from "../components/Stats";
+import Testimonials from "../components/Testimonials";
+import FeaturedCities from "../components/FeaturedCities";
+import LatestProperties from "../components/LatestProperties";
+import Newsletter from "../components/Newsletter";
 import Footer from "../components/Footer";
 
 export default function Home() {
@@ -58,6 +63,11 @@ area="1100 sq ft"
         </div>
       </section>
       <WhyChooseUs />
+      <Stats />
+      <LatestProperties />
+      <Testimonials />
+      <FeaturedCities />
+      <Newsletter />
 
       <Footer />
     </>
