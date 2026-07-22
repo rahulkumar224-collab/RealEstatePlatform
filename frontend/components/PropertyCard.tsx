@@ -3,6 +3,9 @@ type PropertyCardProps = {
   location: string;
   price: string;
   image: string;
+  beds: number;
+baths: number;
+area: string;
 };
 
 export default function PropertyCard({
@@ -10,6 +13,9 @@ export default function PropertyCard({
   location,
   price,
   image,
+  beds,
+baths,
+area,
 }: PropertyCardProps) {
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
@@ -29,6 +35,11 @@ export default function PropertyCard({
         <p className="text-blue-600 text-xl font-bold mt-3">
           {price}
         </p>
+        <div className="flex justify-between text-gray-600 text-sm mt-4">
+  <span>🛏 {beds} Beds</span>
+  <span>🚿 {baths} Baths</span>
+  <span>📐 {area}</span>
+</div>
 
         <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
           View Details
