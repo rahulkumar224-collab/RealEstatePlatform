@@ -9,6 +9,7 @@ import Testimonials from "../components/Testimonials";
 import FeaturedCities from "../components/FeaturedCities";
 import LatestProperties from "../components/LatestProperties";
 import Newsletter from "../components/Newsletter";
+import { properties } from "../data/properties";
 import Footer from "../components/Footer";
 
 export default function Home() {
@@ -30,37 +31,21 @@ export default function Home() {
           </button>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          <PropertyCard
-            title="Luxury Apartment"
-            location="Mumbai"
-            price="₹1.25 Cr"
-            image="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800"
-            beds={3}
-baths={2}
-area="1450 sq ft"
-          />
-
-          <PropertyCard
-            title="Modern Villa"
-            location="Delhi"
-            price="₹2.40 Cr"
-            image="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800"
-            beds={4}
-baths={3}
-area="2200 sq ft"
-          />
-
-          <PropertyCard
-            title="Premium Flat"
-            location="Bangalore"
-            price="₹95 Lakh"
-            image="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800"
-            beds={2}
-baths={2}
-area="1100 sq ft"
-          />
-        </div>
+    <div className="grid md:grid-cols-3 gap-8">
+  {properties.slice(0, 3).map((property) => (
+    <PropertyCard
+      key={property.id}
+      id={property.id}
+      title={property.title}
+      location={property.location}
+      price={property.price}
+      image={property.image}
+      beds={property.beds}
+      baths={property.baths}
+      area={property.area}
+    />
+  ))}
+</div>
       </section>
       <WhyChooseUs />
       <Stats />

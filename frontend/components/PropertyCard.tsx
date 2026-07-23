@@ -1,21 +1,25 @@
+import Link from "next/link";
+
 type PropertyCardProps = {
+  id: number;
   title: string;
   location: string;
   price: string;
   image: string;
   beds: number;
-baths: number;
-area: string;
+  baths: number;
+  area: string;
 };
 
 export default function PropertyCard({
+  id,
   title,
   location,
   price,
   image,
   beds,
-baths,
-area,
+  baths,
+  area,
 }: PropertyCardProps) {
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:-translate-y-3 hover:shadow-2xl">
@@ -43,9 +47,12 @@ area,
   <span>📐 {area}</span>
 </div>
 
-        <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg transition duration-300 hover:bg-blue-700 hover:scale-105">
+        <Link
+  href={`/property/${id}`}
+  className="block mt-4 w-full bg-blue-600 text-white py-2 rounded-lg text-center transition duration-300 hover:bg-blue-700 hover:scale-105"
+>
   View Details
-</button>
+</Link>
       </div>
     </div>
   );
