@@ -1,3 +1,5 @@
+
+import Link from "next/link";
 export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-md">
@@ -10,22 +12,44 @@ export default function Navbar() {
         </div>
 
         <ul className="hidden lg:flex gap-8 font-medium text-gray-700">
-          <li className="cursor-pointer hover:text-blue-600">Buy</li>
-          <li className="cursor-pointer hover:text-blue-600">Sell</li>
-          <li className="cursor-pointer hover:text-blue-600">Rent</li>
-          <li className="cursor-pointer hover:text-blue-600">Commercial</li>
-          <li className="cursor-pointer hover:text-blue-600">Residential</li>
-        </ul>
+  <li className="cursor-pointer hover:text-blue-600">
+    <Link href="/">Buy</Link>
+  </li>
 
-        <div className="flex gap-3">
-          <button className="border border-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50">
-            Login
-          </button>
+  <li className="cursor-pointer hover:text-blue-600">
+    <Link href="/">Sell</Link>
+  </li>
 
-          <button className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700">
-            Post Property
-          </button>
-        </div>
+  <li className="cursor-pointer hover:text-blue-600">
+    <Link href="/">Rent</Link>
+  </li>
+
+  <li className="cursor-pointer hover:text-blue-600">
+    <Link href="/">Commercial</Link>
+  </li>
+
+  <li className="cursor-pointer hover:text-blue-600">
+    <Link href="/">Residential</Link>
+  </li>
+</ul>
+
+       <div className="flex gap-3">
+
+  <Link
+    href="/login"
+    className="border border-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50"
+  >
+    Login
+  </Link>
+
+  <Link
+    href="/add-property"
+    className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700"
+  >
+    Post Property
+  </Link>
+
+</div>
 
       </div>
     </nav>

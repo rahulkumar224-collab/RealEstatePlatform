@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -23,17 +25,27 @@ export default function LoginPage() {
             Login
           </button>
 
-          <p className="text-center text-sm text-gray-500">
-            Forgot Password?
-          </p>
+          <div className="mt-6 text-center space-y-3">
+            <p>
+              Don't have an account?{" "}
+              <Link
+                href="/register"
+                className="text-blue-600 font-semibold"
+              >
+                Register
+              </Link>
+            </p>
 
-          <p className="text-center text-sm">
-            Don't have an account?
-            <span className="text-blue-600 cursor-pointer">
-              {" "}
-              Register
-            </span>
-          </p>
+            <p>
+              <Link
+                href="/forgot-password"
+                className="text-blue-600 font-semibold"
+              >
+                Forgot Password?
+              </Link>
+            </p>
+          </div>
+
         </form>
       </div>
     </div>

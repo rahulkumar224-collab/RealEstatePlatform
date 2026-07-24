@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -35,12 +37,18 @@ export default function RegisterPage() {
             Create Account
           </button>
 
-          <p className="text-center text-sm">
-            Already have an account?
-            <span className="text-blue-600 cursor-pointer">
-              {" "}Login
-            </span>
-          </p>
+          <div className="mt-6 text-center">
+            <p>
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="text-blue-600 font-semibold"
+              >
+                Login
+              </Link>
+            </p>
+          </div>
+
         </form>
       </div>
     </div>

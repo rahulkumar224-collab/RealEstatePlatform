@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -21,12 +23,17 @@ export default function ForgotPasswordPage() {
             Send Reset Link
           </button>
 
-          <p className="text-center text-sm">
-            Back to
-            <span className="text-blue-600 cursor-pointer">
-              {" "}Login
-            </span>
-          </p>
+          <div className="mt-6 text-center">
+            <p>
+              Remember your password?{" "}
+              <Link
+                href="/login"
+                className="text-blue-600 font-semibold"
+              >
+                Login
+              </Link>
+            </p>
+          </div>
         </form>
       </div>
     </div>
