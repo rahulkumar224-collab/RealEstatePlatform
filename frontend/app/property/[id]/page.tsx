@@ -1,3 +1,6 @@
+import RelatedProperties from "../../../components/RelatedProperties";
+import ContactAgent from "../../../components/ContactAgent";
+import PropertyGallery from "../../../components/PropertyGallery";
 import { properties } from "../../../data/properties";
 
 export default async function PropertyDetails({
@@ -19,11 +22,7 @@ export default async function PropertyDetails({
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
-      <img
-        src={property.image}
-        alt={property.title}
-        className="w-full h-[500px] object-cover rounded-xl"
-      />
+      <PropertyGallery images={property.images} />
 
       <h1 className="text-4xl font-bold mt-8">
         {property.title}
@@ -33,9 +32,21 @@ export default async function PropertyDetails({
         {property.location}
       </p>
 
-      <h2 className="text-3xl text-blue-600 font-bold mt-4">
-        {property.price}
-      </h2>
+      <div className="flex justify-between items-center mt-4">
+  <h2 className="text-3xl text-blue-600 font-bold">
+    {property.price}
+  </h2>
+
+  <div className="flex gap-3">
+    <button className="border rounded-lg px-4 py-2 hover:bg-red-50 transition">
+      ❤️ Favorite
+    </button>
+
+    <button className="border rounded-lg px-4 py-2 hover:bg-blue-50 transition">
+      🔗 Share
+    </button>
+  </div>
+</div>
 
       <div className="flex gap-8 mt-6 text-lg">
         <span>🛏 {property.beds} Beds</span>
@@ -43,13 +54,33 @@ export default async function PropertyDetails({
         <span>📐 {property.area}</span>
       </div>
 
-      <h3 className="text-2xl font-bold mt-10">
-        Description
-      </h3>
+     <h3 className="text-2xl font-bold mt-10">
+  Description
+</h3>
 
-      <p className="text-gray-700 mt-3 leading-8">
-        {property.description}
-      </p>
-    </div>
+<p className="text-gray-700 mt-3 leading-8">
+  {property.description}
+</p>
+
+<div className="mt-10">
+  <h3 className="text-2xl font-bold mb-5">
+    Property Features
+  </h3>
+
+  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+    {property.features.map((feature, index) => (
+      <div
+        key={index}
+        className="bg-blue-50 rounded-lg p-4 font-medium"
+      >
+        ✅ {feature}
+      </div>
+    ))}
+  </div>
+</div>
+
+<ContactAgent />
+<RelatedProperties currentId={property.id} />
+</div>
   );
 }
