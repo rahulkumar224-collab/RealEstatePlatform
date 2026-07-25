@@ -1,3 +1,4 @@
+"use client";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import SearchBar from "../components/SearchBar";
@@ -9,10 +10,18 @@ import Testimonials from "../components/Testimonials";
 import FeaturedCities from "../components/FeaturedCities";
 import LatestProperties from "../components/LatestProperties";
 import Newsletter from "../components/Newsletter";
-import { properties } from "../data/properties";
+import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
 
 export default function Home() {
+  const [properties, setProperties] = useState<any[]>([]);
+
+useEffect(() => {
+  fetch("http://127.0.0.1:8000/api/properties")
+    .then((res) => res.json())
+    .then((data) => setProperties(data))
+    .catch((err) => console.error(err));
+}, []);
   return (
     <>
       <Navbar />
@@ -33,17 +42,17 @@ export default function Home() {
 
     <div className="grid md:grid-cols-3 gap-8">
   {properties.slice(0, 3).map((property) => (
-    <PropertyCard
-      key={property.id}
-      id={property.id}
-      title={property.title}
-      location={property.location}
-      price={property.price}
-      image={property.image}
-      beds={property.beds}
-      baths={property.baths}
-      area={property.area}
-    />
+   <PropertyCard
+  key={property.id}
+  id={property.id}
+  title={property.title}
+  location={`${property.city}, ${property.state}`}
+  price={`₹${Number(property.price).toLocaleString("en-IN")}`}
+  image={property.image}
+  beds={property.bedrooms ?? 0}
+  baths={property.bathrooms ?? 0}
+  area={`${property.area} sq ft`}
+/>
   ))}
 </div>
       </section>
