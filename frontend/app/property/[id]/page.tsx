@@ -1,86 +1,77 @@
-import RelatedProperties from "../../../components/RelatedProperties";
-import ContactAgent from "../../../components/ContactAgent";
-import PropertyGallery from "../../../components/PropertyGallery";
-import { properties } from "../../../data/properties";
+"use client";
 
-export default async function PropertyDetails({
+import { use, useEffect, useState } from "react";
+
+type Property = {
+  id: number;
+  title: string;
+  description: string;
+  price: string;
+  city: string;
+  state: string;
+  image: string;
+  bedrooms: number;
+  bathrooms: number;
+  area: number;
+  category: string;
+  type: string;
+};
+
+
+export default function PropertyDetails({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const { id } = use(params);
+  const [property, setProperty] = useState<Property | null>(null);
 
-  const property = properties.find((item) => item.id === Number(id));
+  useEffect(() => {
+    fetch(`http://127.0.0.1:8000/api/properties/${id}`)
+      .then((res) => res.json())
+      .then((data) => setProperty(data))
+      .catch(console.error);
+  }, [id]);
 
   if (!property) {
     return (
-      <div className="max-w-4xl mx-auto py-20 text-center">
-        <h1 className="text-3xl font-bold">Property Not Found</h1>
+      <div className="text-center py-20 text-xl">
+        Loading...
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
-      <PropertyGallery images={property.images} />
+    <div className="max-w-6xl mx-auto py-12 px-6">
+
+      <img
+        src={property.image}
+        alt={property.title}
+        className="w-full h-[450px] object-cover rounded-xl"
+      />
 
       <h1 className="text-4xl font-bold mt-8">
         {property.title}
       </h1>
 
       <p className="text-gray-500 mt-2">
-        {property.location}
+        {property.city}, {property.state}
       </p>
 
-      <div className="flex justify-between items-center mt-4">
-  <h2 className="text-3xl text-blue-600 font-bold">
-    {property.price}
-  </h2>
-
-  <div className="flex gap-3">
-    <button className="border rounded-lg px-4 py-2 hover:bg-red-50 transition">
-      ❤️ Favorite
-    </button>
-
-    <button className="border rounded-lg px-4 py-2 hover:bg-blue-50 transition">
-      🔗 Share
-    </button>
-  </div>
-</div>
+      <p className="text-blue-600 text-3xl font-bold mt-4">
+        ₹{Number(property.price).toLocaleString("en-IN")}
+      </p>
 
       <div className="flex gap-8 mt-6 text-lg">
-        <span>🛏 {property.beds} Beds</span>
-        <span>🚿 {property.baths} Baths</span>
-        <span>📐 {property.area}</span>
+        <span>🛏 {property.bedrooms} Beds</span>
+        <span>🚿 {property.bathrooms} Baths</span>
+        <span>📐 {property.area} sq ft</span>
       </div>
 
-     <h3 className="text-2xl font-bold mt-10">
-  Description
-</h3>
+      <p className="mt-8 leading-8 text-gray-700">
+        {property.description}
+      </p>
 
-<p className="text-gray-700 mt-3 leading-8">
-  {property.description}
-</p>
-
-<div className="mt-10">
-  <h3 className="text-2xl font-bold mb-5">
-    Property Features
-  </h3>
-
-  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-    {property.features.map((feature, index) => (
-      <div
-        key={index}
-        className="bg-blue-50 rounded-lg p-4 font-medium"
-      >
-        ✅ {feature}
-      </div>
-    ))}
-  </div>
-</div>
-
-<ContactAgent />
-<RelatedProperties currentId={property.id} />
-</div>
+    </div>
   );
 }

@@ -30,9 +30,9 @@ class PropertyController extends Controller
     }
 
     public function show(Property $property)
-    {
-        //
-    }
+{
+    return response()->json($property);
+}
 
     public function update(Request $request, Property $property)
     {
