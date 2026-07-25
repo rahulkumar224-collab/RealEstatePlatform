@@ -15,6 +15,24 @@ import Footer from "../components/Footer";
 
 export default function Home() {
   const [properties, setProperties] = useState<any[]>([]);
+  const [city, setCity] = useState("");
+const [type, setType] = useState("");
+const fetchProperties = () => {
+  let url = "http://127.0.0.1:8000/api/properties?";
+
+  if (city) {
+    url += `city=${encodeURIComponent(city)}&`;
+  }
+
+  if (type) {
+    url += `type=${type}&`;
+  }
+
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => setProperties(data))
+    .catch((err) => console.error(err));
+};
 
 useEffect(() => {
   fetch("http://127.0.0.1:8000/api/properties")
@@ -26,7 +44,13 @@ useEffect(() => {
     <>
       <Navbar />
       <Hero />
-      <SearchBar />
+      <SearchBar
+  city={city}
+  setCity={setCity}
+  type={type}
+  setType={setType}
+  onSearch={fetchProperties}
+/>
       <Categories />
 
       <section className="max-w-7xl mx-auto px-6 py-16">
