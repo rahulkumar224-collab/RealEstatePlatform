@@ -27,11 +27,18 @@ export default function PropertyDetails({
 
   const [property, setProperty] = useState<Property | null>(null);
   const [relatedProperties, setRelatedProperties] = useState<Property[]>([]);
+  const [name, setName] = useState("");
+const [email, setEmail] = useState("");
+const [phone, setPhone] = useState("");
+const [message, setMessage] = useState("");
 
   useEffect(() => {
     fetch(`http://127.0.0.1:8000/api/properties/${id}`)
       .then((res) => res.json())
-      .then((data) => setProperty(data))
+      .then((data) => {
+  setProperty(data);
+  setMessage(`Hi, I'm interested in ${data.title}. Please contact me.`);
+})
       .catch(console.error);
 
     fetch("http://127.0.0.1:8000/api/properties")
@@ -45,6 +52,14 @@ export default function PropertyDetails({
       })
       .catch(console.error);
   }, [id]);
+  const handleInquiry = () => {
+  if (!name || !email || !phone || !message) {
+    alert("Please fill all fields.");
+    return;
+  }
+
+  alert("Inquiry submitted successfully!");
+};
 
   if (!property) {
     return <div className="text-center py-20 text-xl">Loading...</div>;
@@ -128,6 +143,56 @@ export default function PropertyDetails({
           </button>
         </div>
       </div>
+      <div className="mt-8">
+  <h3 className="text-2xl font-bold mb-4">
+    Send Inquiry
+  </h3>
+
+  <div className="space-y-4">
+
+    <input
+      type="text"
+      placeholder="Your Name"
+      value={name}
+  onChange={(e) => setName(e.target.value)}
+      className="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+
+    <input
+      type="email"
+      placeholder="Your Email"
+      value={email}
+  onChange={(e) => setEmail(e.target.value)}
+      className="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+
+    <input
+      type="tel"
+      placeholder="Phone Number"
+      value={phone}
+  onChange={(e) => setPhone(e.target.value)}
+      className="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+
+    <textarea
+      placeholder="Your Message"
+      rows={5}
+        value={message}
+onChange={(e) => setMessage(e.target.value)}
+      className="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      defaultValue={`Hi, I'm interested in ${property.title}. Please contact me.`}
+    />
+    
+
+   <button
+  onClick={handleInquiry}
+  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:scale-105 transition duration-300"
+>
+  Send Inquiry
+</button>
+
+  </div>
+</div>
 
       <div className="mt-16">
         <h2 className="text-3xl font-bold mb-8">
