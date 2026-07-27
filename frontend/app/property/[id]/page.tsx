@@ -27,11 +27,14 @@ export default function PropertyDetails({
 
   const [property, setProperty] = useState<Property | null>(null);
   const [relatedProperties, setRelatedProperties] = useState<Property[]>([]);
+  const [favorite, setFavorite] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
   const [name, setName] = useState("");
 const [email, setEmail] = useState("");
 const [phone, setPhone] = useState("");
 const [message, setMessage] = useState("");
+const [visitDate, setVisitDate] = useState("");
+const [visitTime, setVisitTime] = useState("");
 
   useEffect(() => {
     fetch(`http://127.0.0.1:8000/api/properties/${id}`)
@@ -54,13 +57,22 @@ const [message, setMessage] = useState("");
       })
       .catch(console.error);
   }, [id]);
-  const handleInquiry = () => {
+ const handleInquiry = () => {
   if (!name || !email || !phone || !message) {
     alert("Please fill all fields.");
     return;
   }
 
   alert("Inquiry submitted successfully!");
+};
+
+const handleVisitBooking = () => {
+  if (!visitDate || !visitTime) {
+    alert("Please select visit date and time.");
+    return;
+  }
+
+  alert(`Visit booked on ${visitDate} at ${visitTime}`);
 };
 
   if (!property) {
@@ -75,23 +87,37 @@ const [message, setMessage] = useState("");
   className="w-full h-[500px] object-cover rounded-2xl shadow-lg transition-all duration-300"
 />
 <div className="flex gap-4 mt-4">
+  <img
+    src={property.image}
+    alt={property.title}
+    onClick={() => setSelectedImage(property.image)}
+    className="h-28 w-40 object-cover rounded-lg border-4 border-blue-600 cursor-pointer"
+  />
+</div>
+<div className="flex justify-end gap-4 mb-6">
 
-  {[1, 2, 3, 4].map((item) => (
-    <img
-      key={item}
-      src={property.image}
-      alt={property.title}
-      onClick={() => setSelectedImage(property.image)}
-      className={`h-28 w-40 object-cover rounded-lg cursor-pointer border-4 transition-all duration-300 ${
-        selectedImage === property.image
-          ? "border-blue-600"
-          : "border-transparent hover:border-blue-300"
-      }`}
-    />
-  ))}
+  <button
+    onClick={() => setFavorite(!favorite)}
+    className={`px-5 py-3 rounded-xl font-semibold transition ${
+      favorite
+        ? "bg-red-600 text-white"
+        : "bg-gray-200 hover:bg-gray-300"
+    }`}
+  >
+    {favorite ? "❤️ Saved" : "🤍 Save Property"}
+  </button>
+
+  <button
+    onClick={() => {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Property link copied!");
+    }}
+    className="bg-blue-600 text-white px-5 py-3 rounded-xl hover:bg-blue-700 transition"
+  >
+    📤 Share
+  </button>
 
 </div>
-
       <div className="flex justify-between items-center mt-8">
         <div>
           <div className="flex gap-3 mb-3">
@@ -134,6 +160,33 @@ const [message, setMessage] = useState("");
           <p>{property.area} sq ft</p>
         </div>
       </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
+
+  <div className="bg-blue-50 p-6 rounded-xl text-center">
+    <p className="text-gray-500">Property ID</p>
+    <h3 className="text-xl font-bold">#{property.id}</h3>
+  </div>
+
+  <div className="bg-green-50 p-6 rounded-xl text-center">
+    <p className="text-gray-500">Type</p>
+  <h3 className="text-xl font-bold">
+  {property.type.toUpperCase()}
+</h3>
+  </div>
+
+  <div className="bg-yellow-50 p-6 rounded-xl text-center">
+    <p className="text-gray-500">Category</p>
+    <h3 className="text-xl font-bold">
+  {property.category.toUpperCase()}
+</h3>
+  </div>
+
+  <div className="bg-purple-50 p-6 rounded-xl text-center">
+    <p className="text-gray-500">City</p>
+    <h3 className="text-xl font-bold">{property.city}</h3>
+  </div>
+
+</div>
 
       <div className="mt-10">
         <h2 className="text-3xl font-bold mb-4">Description</h2>
@@ -142,6 +195,200 @@ const [message, setMessage] = useState("");
           {property.description}
         </p>
       </div>
+      <div className="mt-12">
+  <h2 className="text-3xl font-bold mb-6">
+    Features & Amenities
+  </h2>
+
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+
+    <div className="bg-gray-100 p-5 rounded-xl text-center">
+      🚗
+      <p className="mt-2 font-semibold">Parking</p>
+    </div>
+
+    <div className="bg-gray-100 p-5 rounded-xl text-center">
+      🏊
+      <p className="mt-2 font-semibold">Swimming Pool</p>
+    </div>
+
+    <div className="bg-gray-100 p-5 rounded-xl text-center">
+      🌳
+      <p className="mt-2 font-semibold">Garden</p>
+    </div>
+
+    <div className="bg-gray-100 p-5 rounded-xl text-center">
+      🛗
+      <p className="mt-2 font-semibold">Lift</p>
+    </div>
+
+    <div className="bg-gray-100 p-5 rounded-xl text-center">
+      🔒
+      <p className="mt-2 font-semibold">24x7 Security</p>
+    </div>
+
+    <div className="bg-gray-100 p-5 rounded-xl text-center">
+      🏋️
+      <p className="mt-2 font-semibold">Gym</p>
+    </div>
+
+    <div className="bg-gray-100 p-5 rounded-xl text-center">
+      ⚡
+      <p className="mt-2 font-semibold">Power Backup</p>
+    </div>
+
+    <div className="bg-gray-100 p-5 rounded-xl text-center">
+      💧
+      <p className="mt-2 font-semibold">Water Supply</p>
+    </div>
+
+  </div>
+</div>
+<div className="mt-12 bg-white rounded-2xl shadow-lg p-8 border">
+
+  <h2 className="text-3xl font-bold mb-6">
+    👤 Agent Information
+  </h2>
+
+  <div className="flex items-center gap-6">
+
+    <img
+      src="https://i.pravatar.cc/150?img=12"
+      alt="Agent"
+      className="w-28 h-28 rounded-full object-cover border-4 border-blue-500"
+    />
+
+    <div>
+
+      <h3 className="text-2xl font-bold">
+        Rahul Sharma
+      </h3>
+
+      <p className="text-gray-500">
+        Senior Property Consultant
+      </p>
+
+      <div className="grid grid-cols-2 gap-4 mt-4">
+
+        <p>⭐ 4.9 Rating</p>
+
+        <p>🏠 150 Properties</p>
+
+        <p>📞 +91 9876543210</p>
+
+        <p>✉️ rahul@example.com</p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+<div className="mt-12 bg-yellow-50 rounded-2xl p-8 border">
+
+  <div className="flex flex-col md:flex-row justify-between items-center">
+
+    <div>
+      <h2 className="text-5xl font-bold text-yellow-600">
+        4.8
+      </h2>
+
+      <p className="text-xl">
+        ⭐⭐⭐⭐⭐
+      </p>
+
+      <p className="text-gray-600">
+        Based on 256 Reviews
+      </p>
+    </div>
+
+    <div className="w-full md:w-1/2 mt-6 md:mt-0 space-y-3">
+
+      <div className="flex items-center gap-3">
+        <span className="w-10">5⭐</span>
+        <div className="flex-1 bg-gray-200 rounded-full h-3">
+          <div className="bg-yellow-500 h-3 rounded-full w-[80%]"></div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className="w-10">4⭐</span>
+        <div className="flex-1 bg-gray-200 rounded-full h-3">
+          <div className="bg-yellow-500 h-3 rounded-full w-[15%]"></div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className="w-10">3⭐</span>
+        <div className="flex-1 bg-gray-200 rounded-full h-3">
+          <div className="bg-yellow-500 h-3 rounded-full w-[3%]"></div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className="w-10">2⭐</span>
+        <div className="flex-1 bg-gray-200 rounded-full h-3">
+          <div className="bg-yellow-500 h-3 rounded-full w-[1%]"></div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className="w-10">1⭐</span>
+        <div className="flex-1 bg-gray-200 rounded-full h-3">
+          <div className="bg-yellow-500 h-3 rounded-full w-[1%]"></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+<div className="mt-12">
+
+  <h2 className="text-3xl font-bold mb-6">
+    ⭐ Customer Reviews
+  </h2>
+
+  <div className="space-y-6">
+
+    <div className="bg-gray-100 p-6 rounded-xl">
+      <div className="flex justify-between">
+        <h3 className="font-bold">Rahul Verma</h3>
+        <span>⭐⭐⭐⭐⭐</span>
+      </div>
+
+      <p className="text-gray-600 mt-2">
+        Excellent property. The buying process was smooth and the agent was very helpful.
+      </p>
+    </div>
+
+    <div className="bg-gray-100 p-6 rounded-xl">
+      <div className="flex justify-between">
+        <h3 className="font-bold">Priya Singh</h3>
+        <span>⭐⭐⭐⭐☆</span>
+      </div>
+
+      <p className="text-gray-600 mt-2">
+        Great location and reasonable price. Highly recommended.
+      </p>
+    </div>
+
+    <div className="bg-gray-100 p-6 rounded-xl">
+      <div className="flex justify-between">
+        <h3 className="font-bold">Amit Kumar</h3>
+        <span>⭐⭐⭐⭐⭐</span>
+      </div>
+
+      <p className="text-gray-600 mt-2">
+        Amazing experience. Everything matched the property description.
+      </p>
+    </div>
+
+  </div>
+
+</div>
 
       <div className="mt-12 bg-white rounded-2xl shadow-lg p-8 border">
         <h2 className="text-3xl font-bold mb-6">
@@ -209,6 +456,56 @@ onChange={(e) => setMessage(e.target.value)}
 >
   Send Inquiry
 </button>
+
+  </div>
+</div>
+<div className="mt-12 bg-white rounded-2xl shadow-lg p-8 border">
+
+  <h2 className="text-3xl font-bold mb-6">
+    📅 Schedule Property Visit
+  </h2>
+
+  <div className="space-y-4">
+
+    <input
+      type="date"
+      value={visitDate}
+      onChange={(e) => setVisitDate(e.target.value)}
+      className="w-full border rounded-xl p-3"
+    />
+
+    <input
+      type="time"
+      value={visitTime}
+      onChange={(e) => setVisitTime(e.target.value)}
+      className="w-full border rounded-xl p-3"
+    />
+
+    <button
+      onClick={handleVisitBooking}
+      className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 transition"
+    >
+      📅 Book Visit
+    </button>
+
+  </div>
+
+</div>
+<div className="mt-16">
+  <h2 className="text-3xl font-bold mb-6">
+    Property Location
+  </h2>
+
+  <div className="rounded-2xl overflow-hidden shadow-lg">
+
+    <iframe
+      title="Property Location"
+      src={`https://www.google.com/maps?q=${property.city}&output=embed`}
+      width="100%"
+      height="450"
+      loading="lazy"
+      className="border-0"
+    />
 
   </div>
 </div>
