@@ -27,6 +27,7 @@ export default function PropertyDetails({
 
   const [property, setProperty] = useState<Property | null>(null);
   const [relatedProperties, setRelatedProperties] = useState<Property[]>([]);
+  const [selectedImage, setSelectedImage] = useState("");
   const [name, setName] = useState("");
 const [email, setEmail] = useState("");
 const [phone, setPhone] = useState("");
@@ -37,6 +38,7 @@ const [message, setMessage] = useState("");
       .then((res) => res.json())
       .then((data) => {
   setProperty(data);
+  setSelectedImage(data.image);
   setMessage(`Hi, I'm interested in ${data.title}. Please contact me.`);
 })
       .catch(console.error);
@@ -68,10 +70,27 @@ const [message, setMessage] = useState("");
   return (
     <div className="max-w-7xl mx-auto py-10 px-6">
       <img
-        src={property.image}
-        alt={property.title}
-        className="w-full h-[500px] object-cover rounded-2xl shadow-lg"
-      />
+  src={selectedImage}
+  alt={property.title}
+  className="w-full h-[500px] object-cover rounded-2xl shadow-lg transition-all duration-300"
+/>
+<div className="flex gap-4 mt-4">
+
+  {[1, 2, 3, 4].map((item) => (
+    <img
+      key={item}
+      src={property.image}
+      alt={property.title}
+      onClick={() => setSelectedImage(property.image)}
+      className={`h-28 w-40 object-cover rounded-lg cursor-pointer border-4 transition-all duration-300 ${
+        selectedImage === property.image
+          ? "border-blue-600"
+          : "border-transparent hover:border-blue-300"
+      }`}
+    />
+  ))}
+
+</div>
 
       <div className="flex justify-between items-center mt-8">
         <div>
