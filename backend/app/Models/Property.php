@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Property extends Model
 {
@@ -17,6 +18,11 @@ class Property extends Model
         'bedrooms',
         'bathrooms',
         'area',
-        'image'
+        'image',
     ];
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(PropertyImage::class);
+    }
 }
