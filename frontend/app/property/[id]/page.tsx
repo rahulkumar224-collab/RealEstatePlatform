@@ -50,12 +50,12 @@ export default function PropertyDetails({
 
   useEffect(() => {
     fetch(`http://127.0.0.1:8000/api/properties/${id}`)
-      .then((res) => {
-        if (!res.ok) {
+      .then((response) => {
+        if (!response.ok) {
           throw new Error("Property could not be loaded.");
         }
 
-        return res.json();
+        return response.json();
       })
       .then((data: Property) => {
         setProperty(data);
@@ -69,12 +69,12 @@ export default function PropertyDetails({
       });
 
     fetch("http://127.0.0.1:8000/api/properties")
-      .then((res) => {
-        if (!res.ok) {
+      .then((response) => {
+        if (!response.ok) {
           throw new Error("Related properties could not be loaded.");
         }
 
-        return res.json();
+        return response.json();
       })
       .then((all: Property[]) => {
         const filtered = all
@@ -119,7 +119,6 @@ export default function PropertyDetails({
     return (
       <div className="py-20 text-center text-xl">
         Loading...
-        
       </div>
     );
   }
@@ -129,24 +128,55 @@ export default function PropertyDetails({
       ? property.images
       : [];
 
+  const currentImageIndex = galleryImages.findIndex(
+    (image) => image.image_url === selectedImage,
+  );
+
+  const showPreviousImage = () => {
+    if (galleryImages.length === 0) {
+      return;
+    }
+
+    const previousIndex =
+      currentImageIndex <= 0
+        ? galleryImages.length - 1
+        : currentImageIndex - 1;
+
+    setSelectedImage(galleryImages[previousIndex].image_url);
+  };
+
+  const showNextImage = () => {
+    if (galleryImages.length === 0) {
+      return;
+    }
+
+    const nextIndex =
+      currentImageIndex === -1 ||
+      currentImageIndex >= galleryImages.length - 1
+        ? 0
+        : currentImageIndex + 1;
+
+    setSelectedImage(galleryImages[nextIndex].image_url);
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <section>
-       <button
-  type="button"
-  onClick={() => setIsGalleryOpen(true)}
-  className="relative block w-full overflow-hidden rounded-2xl"
->
-  <img
-    src={selectedImage || property.primary_image}
-    alt={property.title}
-    className="h-[500px] w-full object-cover shadow-lg transition duration-300 hover:scale-[1.01]"
-  />
+        <button
+          type="button"
+          onClick={() => setIsGalleryOpen(true)}
+          className="relative block w-full overflow-hidden rounded-2xl"
+        >
+          <img
+            src={selectedImage || property.primary_image}
+            alt={property.title}
+            className="h-[500px] w-full object-cover shadow-lg transition duration-300 hover:scale-[1.01]"
+          />
 
-  <span className="absolute bottom-4 right-4 rounded-lg bg-black/70 px-4 py-2 text-sm font-semibold text-white">
-    🔍 View Fullscreen
-  </span>
-</button>
+          <span className="absolute bottom-4 right-4 rounded-lg bg-black/70 px-4 py-2 text-sm font-semibold text-white">
+            🔍 View Fullscreen
+          </span>
+        </button>
 
         <div className="mt-4 flex gap-4 overflow-x-auto pb-2">
           {galleryImages.length > 0 ? (
@@ -352,7 +382,9 @@ export default function PropertyDetails({
             <h2 className="text-5xl font-bold text-yellow-600">
               4.8
             </h2>
+
             <p className="text-xl">⭐⭐⭐⭐⭐</p>
+
             <p className="text-gray-600">
               Based on 256 Reviews
             </p>
@@ -371,6 +403,7 @@ export default function PropertyDetails({
                 className="flex items-center gap-3"
               >
                 <span className="w-10">{rating}</span>
+
                 <div className="h-3 flex-1 rounded-full bg-gray-200">
                   <div
                     className={`h-3 rounded-full bg-yellow-500 ${width}`}
@@ -410,7 +443,10 @@ export default function PropertyDetails({
               className="rounded-xl bg-gray-100 p-6"
             >
               <div className="flex justify-between">
-                <h3 className="font-bold">{review.name}</h3>
+                <h3 className="font-bold">
+                  {review.name}
+                </h3>
+
                 <span>{review.rating}</span>
               </div>
 
@@ -577,27 +613,64 @@ export default function PropertyDetails({
           ))}
         </div>
       </div>
-      {isGalleryOpen && (
-  <div
-    className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-    onClick={() => setIsGalleryOpen(false)}
-  >
-    <button
-      type="button"
-      onClick={() => setIsGalleryOpen(false)}
-      className="absolute right-6 top-6 rounded-full bg-white px-4 py-2 text-2xl font-bold text-black"
-    >
-      ✕
-    </button>
 
-    <img
-      src={selectedImage || property.primary_image}
-      alt={property.title}
-      onClick={(event) => event.stopPropagation()}
-      className="max-h-[90vh] max-w-[95vw] rounded-xl object-contain"
-    />
-  </div>
-)}
+      {isGalleryOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setIsGalleryOpen(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setIsGalleryOpen(false)}
+            className="absolute right-6 top-6 z-10 rounded-full bg-white px-4 py-2 text-2xl font-bold text-black"
+          >
+            ✕
+          </button>
+
+          {galleryImages.length > 1 && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                showPreviousImage();
+              }}
+              className="absolute left-4 z-10 rounded-full bg-white px-4 py-3 text-2xl font-bold text-black md:left-6"
+            >
+              ←
+            </button>
+          )}
+
+          <img
+            src={selectedImage || property.primary_image}
+            alt={property.title}
+            onClick={(event) => event.stopPropagation()}
+            className="max-h-[90vh] max-w-[80vw] rounded-xl object-contain"
+          />
+
+          {galleryImages.length > 1 && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                showNextImage();
+              }}
+              className="absolute right-4 z-10 rounded-full bg-white px-4 py-3 text-2xl font-bold text-black md:right-6"
+            >
+              →
+            </button>
+          )}
+
+          {galleryImages.length > 0 && (
+            <div className="absolute bottom-5 rounded-full bg-black/70 px-4 py-2 text-sm font-semibold text-white">
+              {currentImageIndex >= 0
+                ? currentImageIndex + 1
+                : 1}
+              {" / "}
+              {galleryImages.length}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
