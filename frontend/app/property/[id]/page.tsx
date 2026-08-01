@@ -88,14 +88,56 @@ export default function PropertyDetails({
       });
   }, [id]);
 
-  const handleInquiry = () => {
-    if (!name || !email || !phone || !message) {
-      alert("Please fill all fields.");
-      return;
+  const handleInquiry = async () => {
+  if (!name || !email || !phone || !message) {
+    alert("Please fill all fields.");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:8000/api/properties/${id}/inquiries`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          message,
+        }),
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Inquiry could not be submitted.",
+      );
     }
 
-    alert("Inquiry submitted successfully!");
-  };
+    alert(data.message);
+
+    setName("");
+    setEmail("");
+    setPhone("");
+    setMessage(
+      `Hi, I'm interested in ${property?.title}. Please contact me.`,
+    );
+  } catch (error) {
+    console.error(error);
+
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Something went wrong.",
+    );
+  }
+};
 
   const handleVisitBooking = () => {
     if (!visitDate || !visitTime) {
