@@ -5,18 +5,27 @@ use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\PropertyImageController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PropertyVisitController;
 
 /*
 |--------------------------------------------------------------------------
 | Public Routes
 |--------------------------------------------------------------------------
 */
+Route::post(
+    '/properties/{property}/visits',
+    [PropertyVisitController::class, 'store']
+);
 
 Route::get('/test', function () {
     return response()->json([
         'success' => true,
         'message' => 'RealEstatePlatform Backend API Working Successfully 🚀',
     ]);
+    Route::post(
+    '/properties/{property}/visits',
+    [PropertyVisitController::class, 'store']
+);
 });
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -60,6 +69,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::put('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/avatar', [AuthController::class, 'updateAvatar']);
+    Route::get(
+    '/property-visits',
+    [PropertyVisitController::class, 'index']
+);
+
+Route::get(
+    '/property-visits/{propertyVisit}',
+    [PropertyVisitController::class, 'show']
+);
 
     /*
     |--------------------------------------------------------------------------

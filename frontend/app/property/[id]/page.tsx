@@ -37,6 +37,7 @@ export default function PropertyDetails({
 
   const [property, setProperty] = useState<Property | null>(null);
   const [relatedProperties, setRelatedProperties] = useState<Property[]>([]);
+
   const [favorite, setFavorite] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
@@ -45,6 +46,7 @@ export default function PropertyDetails({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
+
   const [visitDate, setVisitDate] = useState("");
   const [visitTime, setVisitTime] = useState("");
 
@@ -60,12 +62,13 @@ export default function PropertyDetails({
       .then((data: Property) => {
         setProperty(data);
         setSelectedImage(data.primary_image);
+
         setMessage(
           `Hi, I'm interested in ${data.title}. Please contact me.`,
         );
       })
       .catch((error) => {
-        console.error(error);
+        console.error("Property fetch error:", error);
       });
 
     fetch("http://127.0.0.1:8000/api/properties")
@@ -84,68 +87,118 @@ export default function PropertyDetails({
         setRelatedProperties(filtered);
       })
       .catch((error) => {
-        console.error(error);
+        console.error("Related properties fetch error:", error);
       });
   }, [id]);
 
   const handleInquiry = async () => {
-  if (!name || !email || !phone || !message) {
-    alert("Please fill all fields.");
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `http://127.0.0.1:8000/api/properties/${id}/inquiries`,
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          message,
-        }),
-      },
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Inquiry could not be submitted.",
-      );
-    }
-
-    alert(data.message);
-
-    setName("");
-    setEmail("");
-    setPhone("");
-    setMessage(
-      `Hi, I'm interested in ${property?.title}. Please contact me.`,
-    );
-  } catch (error) {
-    console.error(error);
-
-    alert(
-      error instanceof Error
-        ? error.message
-        : "Something went wrong.",
-    );
-  }
-};
-
-  const handleVisitBooking = () => {
-    if (!visitDate || !visitTime) {
-      alert("Please select visit date and time.");
+    if (!name || !email || !phone || !message) {
+      alert("Please fill all inquiry fields.");
       return;
     }
 
-    alert(`Visit booked on ${visitDate} at ${visitTime}`);
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/properties/${id}/inquiries`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            phone,
+            message,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Inquiry could not be submitted.",
+        );
+      }
+
+      alert(data.message);
+
+      setName("");
+      setEmail("");
+      setPhone("");
+
+      setMessage(
+        `Hi, I'm interested in ${property?.title}. Please contact me.`,
+      );
+    } catch (error) {
+      console.error("Inquiry submission error:", error);
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while submitting inquiry.",
+      );
+    }
+  };
+
+  const handleVisitBooking = async () => {
+    if (
+      !name ||
+      !email ||
+      !phone ||
+      !visitDate ||
+      !visitTime
+    ) {
+      alert(
+        "Please enter your name, email, phone, visit date and visit time.",
+      );
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/properties/${id}/visits`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            phone,
+            visit_date: visitDate,
+            visit_time: visitTime,
+            notes: message || null,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            "Property visit could not be scheduled.",
+        );
+      }
+
+      alert(data.message);
+
+      setVisitDate("");
+      setVisitTime("");
+    } catch (error) {
+      console.error("Visit booking error:", error);
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while booking the visit.",
+      );
+    }
   };
 
   const handleShare = async () => {
@@ -200,6 +253,8 @@ export default function PropertyDetails({
 
     setSelectedImage(galleryImages[nextIndex].image_url);
   };
+
+  const today = new Date().toISOString().split("T")[0];
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
@@ -307,17 +362,23 @@ export default function PropertyDetails({
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
         <div className="rounded-xl bg-gray-100 p-6 text-center">
-          <h3 className="text-xl font-bold">🛏 Bedrooms</h3>
+          <h3 className="text-xl font-bold">
+            🛏 Bedrooms
+          </h3>
           <p>{property.bedrooms ?? "N/A"}</p>
         </div>
 
         <div className="rounded-xl bg-gray-100 p-6 text-center">
-          <h3 className="text-xl font-bold">🚿 Bathrooms</h3>
+          <h3 className="text-xl font-bold">
+            🚿 Bathrooms
+          </h3>
           <p>{property.bathrooms ?? "N/A"}</p>
         </div>
 
         <div className="rounded-xl bg-gray-100 p-6 text-center">
-          <h3 className="text-xl font-bold">📐 Area</h3>
+          <h3 className="text-xl font-bold">
+            📐 Area
+          </h3>
           <p>{property.area} sq ft</p>
         </div>
       </div>
@@ -325,7 +386,9 @@ export default function PropertyDetails({
       <div className="mt-12 grid grid-cols-2 gap-6 md:grid-cols-4">
         <div className="rounded-xl bg-blue-50 p-6 text-center">
           <p className="text-gray-500">Property ID</p>
-          <h3 className="text-xl font-bold">#{property.id}</h3>
+          <h3 className="text-xl font-bold">
+            #{property.id}
+          </h3>
         </div>
 
         <div className="rounded-xl bg-green-50 p-6 text-center">
@@ -381,7 +444,9 @@ export default function PropertyDetails({
               className="rounded-xl bg-gray-100 p-5 text-center"
             >
               <span>{icon}</span>
-              <p className="mt-2 font-semibold">{label}</p>
+              <p className="mt-2 font-semibold">
+                {label}
+              </p>
             </div>
           ))}
         </div>
@@ -444,7 +509,9 @@ export default function PropertyDetails({
                 key={rating}
                 className="flex items-center gap-3"
               >
-                <span className="w-10">{rating}</span>
+                <span className="w-10">
+                  {rating}
+                </span>
 
                 <div className="h-3 flex-1 rounded-full bg-gray-200">
                   <div
@@ -531,17 +598,19 @@ export default function PropertyDetails({
         </div>
       </div>
 
-      <div className="mt-8">
-        <h3 className="mb-4 text-2xl font-bold">
+      <div className="mt-12 rounded-2xl border bg-white p-8 shadow-lg">
+        <h2 className="mb-6 text-3xl font-bold">
           Send Inquiry
-        </h3>
+        </h2>
 
         <div className="space-y-4">
           <input
             type="text"
             placeholder="Your Name"
             value={name}
-            onChange={(event) => setName(event.target.value)}
+            onChange={(event) =>
+              setName(event.target.value)
+            }
             className="w-full rounded-xl border p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
@@ -549,7 +618,9 @@ export default function PropertyDetails({
             type="email"
             placeholder="Your Email"
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) =>
+              setEmail(event.target.value)
+            }
             className="w-full rounded-xl border p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
@@ -557,7 +628,9 @@ export default function PropertyDetails({
             type="tel"
             placeholder="Phone Number"
             value={phone}
-            onChange={(event) => setPhone(event.target.value)}
+            onChange={(event) =>
+              setPhone(event.target.value)
+            }
             className="w-full rounded-xl border p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
@@ -565,7 +638,9 @@ export default function PropertyDetails({
             placeholder="Your Message"
             rows={5}
             value={message}
-            onChange={(event) => setMessage(event.target.value)}
+            onChange={(event) =>
+              setMessage(event.target.value)
+            }
             className="w-full rounded-xl border p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
@@ -584,9 +659,15 @@ export default function PropertyDetails({
           📅 Schedule Property Visit
         </h2>
 
+        <p className="mb-5 text-gray-600">
+          Visit booking ke liye upar inquiry form me apna
+          name, email aur phone fill karein.
+        </p>
+
         <div className="space-y-4">
           <input
             type="date"
+            min={today}
             value={visitDate}
             onChange={(event) =>
               setVisitDate(event.target.value)
