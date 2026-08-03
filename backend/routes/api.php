@@ -22,10 +22,6 @@ Route::get('/test', function () {
         'success' => true,
         'message' => 'RealEstatePlatform Backend API Working Successfully 🚀',
     ]);
-    Route::post(
-    '/properties/{property}/visits',
-    [PropertyVisitController::class, 'store']
-);
 });
 
 Route::post('/register', [AuthController::class, 'register']);
