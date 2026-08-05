@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreInquiryRequest;
+use App\Http\Requests\UpdateInquiryStatusRequest;
 use App\Models\Inquiry;
 use App\Models\Property;
 use Illuminate\Http\JsonResponse;
@@ -47,6 +48,23 @@ class InquiryController extends Controller
 
         return response()->json([
             'success' => true,
+            'inquiry' => $inquiry,
+        ]);
+    }
+
+    public function updateStatus(
+        UpdateInquiryStatusRequest $request,
+        Inquiry $inquiry
+    ): JsonResponse {
+        $validated = $request->validated();
+
+        $inquiry->update([
+            'status' => $validated['status'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Inquiry status updated successfully.',
             'inquiry' => $inquiry,
         ]);
     }

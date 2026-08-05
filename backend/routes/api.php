@@ -75,6 +75,11 @@ Route::get(
     [PropertyVisitController::class, 'show']
 );
 
+Route::patch(
+    '/property-visits/{propertyVisit}/status',
+    [PropertyVisitController::class, 'updateStatus']
+);
+
     /*
     |--------------------------------------------------------------------------
     | Protected Property Management
@@ -133,5 +138,10 @@ Route::get(
     Route::get(
         '/inquiries/{inquiry}',
         [InquiryController::class, 'show']
+    );
+
+    Route::patch(
+        '/inquiries/{inquiry}/status',
+        [InquiryController::class, 'updateStatus']
     );
 });

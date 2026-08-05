@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePropertyVisitRequest;
+use App\Http\Requests\UpdatePropertyVisitStatusRequest;
 use App\Models\Property;
 use App\Models\PropertyVisit;
 use Illuminate\Http\JsonResponse;
@@ -49,6 +50,23 @@ class PropertyVisitController extends Controller
 
         return response()->json([
             'success' => true,
+            'visit' => $propertyVisit,
+        ]);
+    }
+
+    public function updateStatus(
+        UpdatePropertyVisitStatusRequest $request,
+        PropertyVisit $propertyVisit
+    ): JsonResponse {
+        $validated = $request->validated();
+
+        $propertyVisit->update([
+            'status' => $validated['status'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Property visit status updated successfully.',
             'visit' => $propertyVisit,
         ]);
     }
