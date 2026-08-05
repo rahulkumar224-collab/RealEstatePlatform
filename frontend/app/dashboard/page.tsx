@@ -1,44 +1,100 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { ApiError, getInquiries, getPropertyVisits } from "../../lib/api";
+
 export default function DashboardPage() {
+  const [inquiryCount, setInquiryCount] = useState<number | null>(null);
+  const [visitCount, setVisitCount] = useState<number | null>(null);
+  const [inquiryError, setInquiryError] = useState("");
+  const [visitError, setVisitError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        const [inquiriesResult, visitsResult] = await Promise.allSettled([
+          getInquiries(),
+          getPropertyVisits(),
+        ]);
+
+        if (inquiriesResult.status === "fulfilled") {
+          setInquiryCount(inquiriesResult.value.length);
+        } else if (!(inquiriesResult.reason instanceof ApiError && inquiriesResult.reason.status === 401)) {
+          setInquiryError(
+            inquiriesResult.reason instanceof ApiError
+              ? inquiriesResult.reason.message
+              : "Inquiries could not be loaded.",
+          );
+        }
+
+        if (visitsResult.status === "fulfilled") {
+          setVisitCount(visitsResult.value.length);
+        } else if (!(visitsResult.reason instanceof ApiError && visitsResult.reason.status === 401)) {
+          setVisitError(
+            visitsResult.reason instanceof ApiError
+              ? visitsResult.reason.message
+              : "Property visits could not be loaded.",
+          );
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadDashboard();
+  }, []);
+
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
-      <h1 className="text-4xl font-bold mb-8">
-        My Dashboard
-      </h1>
-
-      <div className="grid md:grid-cols-4 gap-6">
-
-        <div className="bg-blue-600 text-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-3xl font-bold">12</h2>
-          <p className="mt-2">My Properties</p>
-        </div>
-
-        <div className="bg-green-600 text-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-3xl font-bold">45</h2>
-          <p className="mt-2">Property Views</p>
-        </div>
-
-        <div className="bg-purple-600 text-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-3xl font-bold">8</h2>
-          <p className="mt-2">Inquiries</p>
-        </div>
-
-        <div className="bg-orange-500 text-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-3xl font-bold">5</h2>
-          <p className="mt-2">Favorites</p>
-        </div>
-
-      </div>
-
-      <div className="mt-12 bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold mb-4">
-          Welcome Back 👋
-        </h2>
-
-        <p className="text-gray-600">
-          Manage your properties, view inquiries,
-          and update your profile from your dashboard.
+    <div className="mx-auto max-w-7xl px-6 py-10">
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold">Management Dashboard</h1>
+        <p className="mt-2 text-gray-600">
+          Review and update customer inquiries and property visit requests.
         </p>
       </div>
+
+      {inquiryError && (
+        <p role="alert" className="mb-6 rounded-xl bg-red-50 p-4 text-red-700">
+          Inquiries: {inquiryError}
+        </p>
+      )}
+      {visitError && (
+        <p role="alert" className="mb-6 rounded-xl bg-red-50 p-4 text-red-700">
+          Property visits: {visitError}
+        </p>
+      )}
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Link
+          href="/dashboard/inquiries"
+          className="rounded-xl bg-blue-600 p-6 text-white shadow-lg transition hover:bg-blue-700"
+        >
+          <p className="text-sm font-medium text-blue-100">Inquiries</p>
+          <p className="mt-2 text-4xl font-bold">
+            {isLoading ? "Loading..." : inquiryError ? "Unavailable" : inquiryCount}
+          </p>
+          <p className="mt-4 font-semibold">Manage inquiries →</p>
+        </Link>
+
+        <Link
+          href="/dashboard/property-visits"
+          className="rounded-xl bg-indigo-600 p-6 text-white shadow-lg transition hover:bg-indigo-700"
+        >
+          <p className="text-sm font-medium text-indigo-100">Property Visits</p>
+          <p className="mt-2 text-4xl font-bold">
+            {isLoading ? "Loading..." : visitError ? "Unavailable" : visitCount}
+          </p>
+          <p className="mt-4 font-semibold">Manage property visits →</p>
+        </Link>
+      </div>
+
+      {!isLoading && !inquiryError && !visitError && inquiryCount === 0 && visitCount === 0 && (
+        <div className="mt-8 rounded-xl bg-white p-6 text-gray-600 shadow-lg">
+          No inquiries or property visits have been submitted yet.
+        </div>
+      )}
     </div>
   );
 }
