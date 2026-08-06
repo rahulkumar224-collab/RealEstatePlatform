@@ -33,20 +33,12 @@ return new class extends Migration
                 ->after('city');
 
             $table->string('country')
-    ->default('India')
-    ->after('state');
+                ->default('India')
+                ->after('state');
 
-$table->string('pincode')
-    ->nullable()
-    ->after('country');
-
-$table->text('bio')
-    ->nullable()
-    ->after('pincode');
-
-$table->boolean('is_verified')
-    ->default(false)
-    ->after('bio');
+            $table->boolean('is_verified')
+                ->default(false)
+                ->after('country');
         });
     }
 
@@ -54,18 +46,16 @@ $table->boolean('is_verified')
     {
         Schema::table('users', function (Blueprint $table) {
 
-          $table->dropColumn([
-    'phone',
-    'role',
-    'avatar',
-    'address',
-    'city',
-    'state',
-    'country',
-    'pincode',
-    'bio',
-    'is_verified'
-]);
+            $table->dropColumn([
+                'phone',
+                'role',
+                'avatar',
+                'address',
+                'city',
+                'state',
+                'country',
+                'is_verified',
+            ]);
         });
     }
 };

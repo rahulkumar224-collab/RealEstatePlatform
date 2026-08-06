@@ -6,13 +6,14 @@ use App\Models\User;
 use App\Models\Inquiry;
 use App\Models\Property;
 use App\Models\PropertyVisit;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
-// Add RefreshDatabase after the duplicate migration issue is resolved.
-// Do not run this test against a shared persistent database before then.
 class AdminAuthorizationTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_unauthenticated_users_cannot_manage_inquiries(): void
     {
         $this->getJson('/api/inquiries')
