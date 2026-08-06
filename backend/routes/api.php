@@ -65,20 +65,30 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::put('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/avatar', [AuthController::class, 'updateAvatar']);
+
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin Management Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get(
-    '/property-visits',
-    [PropertyVisitController::class, 'index']
-);
+        '/property-visits',
+        [PropertyVisitController::class, 'index']
+    );
 
-Route::get(
-    '/property-visits/{propertyVisit}',
-    [PropertyVisitController::class, 'show']
-);
+    Route::get(
+        '/property-visits/{propertyVisit}',
+        [PropertyVisitController::class, 'show']
+    );
 
-Route::patch(
-    '/property-visits/{propertyVisit}/status',
-    [PropertyVisitController::class, 'updateStatus']
-);
+    Route::patch(
+        '/property-visits/{propertyVisit}/status',
+        [PropertyVisitController::class, 'updateStatus']
+    );
 
     /*
     |--------------------------------------------------------------------------
