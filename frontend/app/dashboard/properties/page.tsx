@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ApiError, getProperties, Property } from "../../../lib/api";
+import { ApiError, deleteProperty, getProperties, Property } from "../../../lib/api";
 
 const formatPrice = (value: string | number) => {
   const price = Number(value);
@@ -39,6 +39,9 @@ export default function PropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const deletingIdRef = useRef<number | null>(null);
 
   const loadProperties = useCallback(async () => {
     try {
@@ -85,6 +88,34 @@ export default function PropertiesPage() {
     void loadProperties();
   };
 
+  const handleDelete = async (property: Property) => {
+    if (deletingIdRef.current !== null) return;
+
+    const confirmed = window.confirm(
+      `Delete “${property.title}”? This will permanently remove the property, its inquiries, visits, and images. This action cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    deletingIdRef.current = property.id;
+    setDeletingId(property.id);
+    setDeleteError("");
+
+    try {
+      await deleteProperty(property.id);
+
+      if (isMounted.current) {
+        setProperties((current) => current.filter((record) => record.id !== property.id));
+      }
+    } catch (caughtError) {
+      if (isMounted.current) {
+        setDeleteError(caughtError instanceof ApiError ? caughtError.message : "The property could not be deleted.");
+      }
+    } finally {
+      deletingIdRef.current = null;
+      if (isMounted.current) setDeletingId(null);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -99,6 +130,12 @@ export default function PropertiesPage() {
           Post Property
         </Link>
       </div>
+
+      {deleteError && (
+        <p role="alert" className="mb-6 rounded-xl bg-red-50 p-4 text-red-700">
+          {deleteError}
+        </p>
+      )}
 
       {isLoading ? (
         <div className="rounded-xl bg-white p-6 text-gray-600 shadow-lg">
@@ -184,13 +221,27 @@ export default function PropertiesPage() {
                     </div>
                   </dl>
 
-                  <div className="mt-auto">
+                  <div className="mt-auto flex flex-wrap gap-3">
                     <Link
                       href={`/property/${property.id}`}
                       className="inline-block rounded-lg border border-blue-600 px-4 py-2 font-semibold text-blue-700 transition hover:bg-blue-50"
                     >
                       View Property
                     </Link>
+                    <Link
+                      href={`/dashboard/properties/${property.id}/edit`}
+                      className="inline-block rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => void handleDelete(property)}
+                      disabled={deletingId !== null}
+                      className="rounded-lg border border-red-600 px-4 py-2 font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {deletingId === property.id ? "Deleting..." : "Delete"}
+                    </button>
                   </div>
                 </div>
               </article>

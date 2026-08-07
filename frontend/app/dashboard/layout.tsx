@@ -42,7 +42,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             <nav className="flex flex-wrap items-center gap-2" aria-label="Dashboard navigation">
               {navigation.map((item) => {
-                const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (
+                item.href === "/dashboard/properties" &&
+                pathname.startsWith("/dashboard/properties/")
+              );
 
                 return (
                   <Link

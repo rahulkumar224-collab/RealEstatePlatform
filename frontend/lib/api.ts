@@ -49,6 +49,8 @@ export interface CreatePropertyPayload {
   image?: string | null;
 }
 
+export type UpdatePropertyPayload = CreatePropertyPayload;
+
 export interface User {
   id: number;
   name: string;
@@ -135,6 +137,17 @@ type CreatePropertyResponse = {
   success: boolean;
   message: string;
   property: Property;
+};
+
+type UpdatePropertyResponse = {
+  success: boolean;
+  message: string;
+  property: Property;
+};
+
+type DeletePropertyResponse = {
+  success: boolean;
+  message: string;
 };
 
 type UploadPropertyImagesResponse = {
@@ -284,12 +297,32 @@ export const getCurrentUser = () => request<User>("/user");
 export const getProperties = () =>
   request<Property[]>("/properties", {}, false);
 
+export const getProperty = (id: number) =>
+  request<Property>(`/properties/${id}`, {}, false);
+
 export const createProperty = async (payload: CreatePropertyPayload) => {
   const response = await request<CreatePropertyResponse>("/properties", {
     method: "POST",
     body: JSON.stringify(payload),
   });
   return response.property;
+};
+
+export const updateProperty = async (
+  id: number,
+  payload: UpdatePropertyPayload,
+) => {
+  const response = await request<UpdatePropertyResponse>(`/properties/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+  return response.property;
+};
+
+export const deleteProperty = async (id: number) => {
+  await request<DeletePropertyResponse>(`/properties/${id}`, {
+    method: "DELETE",
+  });
 };
 
 export const uploadPropertyImages = async (
