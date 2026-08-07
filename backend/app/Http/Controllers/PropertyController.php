@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePropertyRequest;
 use App\Models\Property;
 use Illuminate\Http\Request;
 
@@ -66,9 +67,15 @@ class PropertyController extends Controller
         return response()->json($properties);
     }
 
-    public function store(Request $request)
+    public function store(StorePropertyRequest $request)
     {
-        //
+        $property = Property::create($request->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Property created successfully.',
+            'property' => $property,
+        ], 201);
     }
 
     public function show(Property $property)
