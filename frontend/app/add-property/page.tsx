@@ -11,31 +11,12 @@ import {
   CreatePropertyPayload,
   uploadPropertyImages,
 } from "../../lib/api";
+import {
+  PROPERTY_IMAGE_ACCEPT,
+  validatePropertyImages,
+} from "../../lib/property-image-validation";
 
 type SubmissionState = "idle" | "creating" | "uploading" | "partial" | "success";
-
-const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
-const allowedImageExtensions = new Set(["jpg", "jpeg", "png", "webp"]);
-const maxImageSize = 5 * 1024 * 1024;
-
-const validateImages = (images: File[]) => {
-  if (images.length > 10) return "You can upload a maximum of 10 images.";
-
-  for (const image of images) {
-    const extension = image.name.split(".").pop()?.toLowerCase() ?? "";
-    const hasAllowedType = allowedImageTypes.has(image.type);
-    const hasExtensionFallback = image.type === "" && allowedImageExtensions.has(extension);
-
-    if (!hasAllowedType && !hasExtensionFallback) {
-      return `${image.name} must be a JPG, JPEG, PNG, or WEBP image.`;
-    }
-    if (image.size > maxImageSize) {
-      return `${image.name} must not be larger than 5 MB.`;
-    }
-  }
-
-  return "";
-};
 
 export default function AddPropertyPage() {
   const router = useRouter();
@@ -50,7 +31,7 @@ export default function AddPropertyPage() {
 
   const handleImagesChange = (files: FileList | null) => {
     const selectedImages = files ? Array.from(files) : [];
-    const validationError = validateImages(selectedImages);
+    const validationError = validatePropertyImages(selectedImages);
 
     if (validationError) {
       setImages([]);
@@ -67,7 +48,7 @@ export default function AddPropertyPage() {
   const handleCreate = async (payload: CreatePropertyPayload) => {
     if (submissionLock.current || createdPropertyId !== null) return;
 
-    const imageError = imageValidationError || validateImages(images);
+    const imageError = imageValidationError || validatePropertyImages(images);
     if (imageError) {
       setError(imageError);
       return;
@@ -158,7 +139,7 @@ export default function AddPropertyPage() {
           >
             <label className="block">
               <span className="mb-2 block font-medium text-gray-700">Images (optional)</span>
-              <input type="file" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={(event) => handleImagesChange(event.target.files)} disabled={createdPropertyId !== null || isSubmitting} className="w-full rounded-lg border p-3 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:font-semibold file:text-blue-700 disabled:bg-gray-100" />
+              <input type="file" multiple accept={PROPERTY_IMAGE_ACCEPT} onChange={(event) => handleImagesChange(event.target.files)} disabled={createdPropertyId !== null || isSubmitting} className="w-full rounded-lg border p-3 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:font-semibold file:text-blue-700 disabled:bg-gray-100" />
               <span className="mt-2 block text-sm text-gray-500">Up to 10 JPG, JPEG, PNG, or WEBP files; maximum 5 MB each.</span>
             </label>
 

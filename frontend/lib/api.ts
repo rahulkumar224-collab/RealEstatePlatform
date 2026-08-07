@@ -157,6 +157,11 @@ type UploadPropertyImagesResponse = {
   images: PropertyImage[];
 };
 
+type PropertyImageActionResponse = {
+  success: boolean;
+  message: string;
+};
+
 export class ApiError extends Error {
   constructor(message: string, public readonly status: number) {
     super(message);
@@ -337,6 +342,26 @@ export const uploadPropertyImages = async (
     { method: "POST", body: formData },
   );
   return response.images;
+};
+
+export const deletePropertyImage = async (
+  propertyId: number,
+  imageId: number,
+) => {
+  await request<PropertyImageActionResponse>(
+    `/properties/${propertyId}/images/${imageId}`,
+    { method: "DELETE" },
+  );
+};
+
+export const makePrimaryPropertyImage = async (
+  propertyId: number,
+  imageId: number,
+) => {
+  await request<PropertyImageActionResponse>(
+    `/properties/${propertyId}/images/${imageId}/primary`,
+    { method: "PUT" },
+  );
 };
 
 export const getInquiries = async () => {

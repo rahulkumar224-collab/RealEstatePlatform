@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import PropertyForm from "../../../../../components/dashboard/PropertyForm";
+import PropertyImageManager from "../../../../../components/dashboard/PropertyImageManager";
 import {
   ApiError,
   CreatePropertyPayload,
@@ -78,8 +79,21 @@ export default function EditPropertyPage() {
     try {
       const updated = await updateProperty(propertyId, payload);
       if (isMounted.current) {
-        setProperty(updated);
+        setProperty((current) => current ? { ...current, ...updated, images: current.images } : updated);
         setSuccess("Property updated successfully.");
+      }
+
+      try {
+        const refreshed = await getProperty(propertyId);
+        if (isMounted.current) setProperty(refreshed);
+      } catch (refreshError) {
+        if (!isMounted.current) return;
+
+        if (refreshError instanceof ApiError && refreshError.status === 404) {
+          setIsNotFound(true);
+        } else {
+          setSaveError("Property was updated, but its latest information could not be loaded.");
+        }
       }
     } catch (caughtError) {
       if (isMounted.current) {
@@ -152,6 +166,12 @@ export default function EditPropertyPage() {
           isSubmitting={isSaving}
           submitLabel="Save changes"
           submittingLabel="Saving changes..."
+        />
+
+        <PropertyImageManager
+          property={property}
+          onPropertyChange={setProperty}
+          onPropertyNotFound={() => setIsNotFound(true)}
         />
       </div>
     </div>
