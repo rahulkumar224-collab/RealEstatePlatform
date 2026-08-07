@@ -18,8 +18,8 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
-      router.replace("/dashboard");
+      const user = await login(email, password);
+      router.replace(user.role === "admin" ? "/dashboard" : "/");
     } catch (caughtError) {
       setError(
         caughtError instanceof ApiError
@@ -88,11 +88,6 @@ export default function LoginPage() {
               </Link>
             </p>
 
-            <p>
-              <Link href="/forgot-password" className="font-semibold text-blue-600">
-                Forgot Password?
-              </Link>
-            </p>
           </div>
         </form>
       </div>

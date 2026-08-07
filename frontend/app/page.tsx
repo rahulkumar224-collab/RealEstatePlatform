@@ -45,8 +45,12 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    const queryType = new URLSearchParams(window.location.search).get("type");
+    const initialType = queryType === "buy" || queryType === "rent" ? queryType : "";
+
     const loadTimer = window.setTimeout(() => {
-      void loadProperties();
+      setType(initialType);
+      void loadProperties({ type: initialType });
     }, 0);
 
     return () => window.clearTimeout(loadTimer);
@@ -63,7 +67,7 @@ export default function Home() {
       <SearchBar city={city} setCity={setCity} type={type} setType={setType} onSearch={handleSearch} />
       <Categories />
 
-      <section className="mx-auto max-w-7xl px-6 py-16">
+      <section id="properties" className="mx-auto max-w-7xl scroll-mt-24 px-6 py-16">
         <div className="mb-8 flex items-center justify-between">
           <h2 className="text-3xl font-bold">Featured Properties</h2>
           <button className="font-semibold text-blue-600">View All</button>

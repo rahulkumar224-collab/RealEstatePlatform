@@ -9,32 +9,17 @@ export default function ForgotPasswordPage() {
         </h1>
 
         <p className="text-center text-gray-500 mb-8">
-          Enter your email address and we&apos;ll send you a password reset link.
+          Password recovery is not currently available. Please return to login to access your account.
         </p>
 
-        <form className="space-y-5">
-          <input
-            type="email"
-            placeholder="Email Address"
-            className="w-full border rounded-lg p-3"
-          />
-
-          <button className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
-            Send Reset Link
-          </button>
-
-          <div className="mt-6 text-center">
-            <p>
-              Remember your password?{" "}
-              <Link
-                href="/login"
-                className="text-blue-600 font-semibold"
-              >
-                Login
-              </Link>
-            </p>
-          </div>
-        </form>
+        <div className="text-center">
+          <Link
+            href="/login"
+            className="inline-block rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+          >
+            Back to Login
+          </Link>
+        </div>
       </div>
     </div>
   );

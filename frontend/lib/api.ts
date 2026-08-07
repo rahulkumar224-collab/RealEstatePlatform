@@ -1,5 +1,6 @@
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 const TOKEN_STORAGE_KEY = "realestateplatform_auth_token";
+export const AUTH_CHANGED_EVENT = "auth:changed";
 
 export type InquiryStatus = "new" | "contacted" | "closed";
 export type PropertyVisitStatus = "pending" | "confirmed" | "completed" | "cancelled";
@@ -126,9 +127,10 @@ export type PropertyVisit = {
   property?: PropertySummary;
 };
 
-type LoginResponse = {
+type AuthResponse = {
   success: boolean;
   message: string;
+  user: User;
   token: string;
 };
 
@@ -200,11 +202,13 @@ export const getAuthToken = () =>
 
 export const setAuthToken = (token: string) => {
   window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 };
 
 export const clearAuthToken = () => {
   if (typeof window !== "undefined") {
     window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
   }
 };
 
@@ -306,13 +310,38 @@ const request = async <T>(
 };
 
 export const login = async (email: string, password: string) => {
-  const response = await request<LoginResponse>(
+  const response = await request<AuthResponse>(
     "/login",
     { method: "POST", body: JSON.stringify({ email, password }) },
     false,
   );
 
   setAuthToken(response.token);
+  return response.user;
+};
+
+export const register = async (
+  name: string,
+  email: string,
+  password: string,
+  passwordConfirmation: string,
+) => {
+  const response = await request<AuthResponse>(
+    "/register",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        password_confirmation: passwordConfirmation,
+      }),
+    },
+    false,
+  );
+
+  setAuthToken(response.token);
+  return response.user;
 };
 
 export const logout = async () => {
