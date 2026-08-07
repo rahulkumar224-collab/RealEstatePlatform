@@ -3,6 +3,26 @@ const TOKEN_STORAGE_KEY = "realestateplatform_auth_token";
 
 export type InquiryStatus = "new" | "contacted" | "closed";
 export type PropertyVisitStatus = "pending" | "confirmed" | "completed" | "cancelled";
+export type UserRole = "admin" | "buyer";
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+  phone?: string | null;
+  avatar?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+  pincode?: string | null;
+  bio?: string | null;
+  is_verified?: boolean;
+  email_verified_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
 
 type PropertySummary = {
   id: number;
@@ -95,6 +115,12 @@ const notifyUnauthorized = () => {
   }
 };
 
+const notifyForbidden = () => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("auth:forbidden"));
+  }
+};
+
 const getErrorMessage = async (response: Response) => {
   try {
     const body = (await response.json()) as { message?: string; errors?: Record<string, string[]> };
@@ -164,6 +190,10 @@ const request = async <T>(
     throw new ApiError("Your session has expired. Please log in again.", 401);
   }
 
+  if (requiresAuth && response.status === 403) {
+    notifyForbidden();
+  }
+
   if (!response.ok) {
     throw new ApiError(await getErrorMessage(response), response.status);
   }
@@ -188,6 +218,8 @@ export const logout = async () => {
     clearAuthToken();
   }
 };
+
+export const getCurrentUser = () => request<User>("/user");
 
 export const getInquiries = async () => {
   const response = await request<InquiriesResponse>("/inquiries");
