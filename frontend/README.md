@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RealEstatePlatform frontend
 
-## Getting Started
+Next.js frontend for browsing properties and accessing the administrative interface.
 
-First, run the development server:
+## Requirements
+
+- Node.js compatible with the version of Next.js declared in `package.json`
+- npm
+- A reachable RealEstatePlatform backend API
+
+## Install
+
+Install the locked dependencies:
+
+```bash
+npm ci
+```
+
+Copy `.env.example` to `.env.local` when an explicit local API URL is useful. Do not commit real environment files.
+
+## API configuration
+
+`NEXT_PUBLIC_API_BASE_URL` must contain the full absolute API base URL, including the final `/api` segment:
+
+```text
+NEXT_PUBLIC_API_BASE_URL=https://api.example.com/api
+```
+
+Trailing slashes are removed automatically. The URL must use HTTP or HTTPS, must end in `/api`, and must not contain a duplicated `/api/api` suffix.
+
+When the variable is absent in development, the frontend uses:
+
+```text
+http://127.0.0.1:8000/api
+```
+
+Production builds fail if the variable is missing or invalid. Variables prefixed with `NEXT_PUBLIC_` are embedded in the browser bundle at build time, so they must never contain secrets. Changing the API URL requires rebuilding the frontend.
+
+Use HTTPS for both frontend and backend in production. If they are hosted on separate origins, configure the backend CORS allowlist for the exact frontend origin.
+
+## Development
+
+Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The frontend is available at `http://localhost:3000` by default.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verification
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npm run build
+```
 
-## Learn More
+For a production build, provide the API URL in the build environment. PowerShell example:
 
-To learn more about Next.js, take a look at the following resources:
+```powershell
+$env:NEXT_PUBLIC_API_BASE_URL="https://api.example.com/api"
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Production start
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+After a successful build:
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run start
+```
