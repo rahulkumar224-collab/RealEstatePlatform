@@ -1,59 +1,143 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# RealEstatePlatform backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel API backend for RealEstatePlatform. It provides public property browsing and contact endpoints, Sanctum bearer-token authentication, buyer registration, and administrator-only property and inquiry management.
 
-## About Laravel
+Users have either the `buyer` or `admin` role. Public registration always creates buyers. Administrators must be provisioned through the secure interactive command documented below.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Local setup
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Requirements include PHP 8.2 or newer, Composer, the PHP extensions required by Laravel, and a supported database.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+```
 
-## Learning Laravel
+Configure the database connection in `.env`, then initialize the application:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```bash
+php artisan migrate
+php artisan storage:link
+php artisan serve
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Do not commit `.env` or credentials.
 
-## Laravel Sponsors
+## Production environment
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Configure production values outside source control. Important settings include:
 
-### Premium Partners
+- `APP_NAME`: application display name.
+- `APP_ENV=production`.
+- `APP_KEY`: generated once and then preserved.
+- `APP_DEBUG=false`.
+- `APP_URL`: externally reachable HTTPS backend origin, without `/api`.
+- `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` as required by the selected database.
+- `CORS_ALLOWED_ORIGINS`: comma-separated exact frontend origins without trailing slashes.
+- `SANCTUM_EXPIRATION`: bearer-token lifetime in minutes; the default is `10080` (seven days).
+- `CACHE_STORE`: must be persistent and writable for rate limiting. A database cache is acceptable for a small single server; Redis is an option when available.
+- `SESSION_DRIVER`: configure for the deployment even though API authentication currently uses bearer tokens.
+- `FILESYSTEM_DISK`: consider persistence and backups. Current upload controllers use the local `public` disk explicitly.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Never place secrets in frontend `NEXT_PUBLIC_*` variables.
 
-## Contributing
+## First production deployment
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+If replacing existing data, take and verify backups before deployment.
 
-## Code of Conduct
+```bash
+composer install --no-dev --optimize-autoloader
+# Create and configure the production .env outside source control.
+php artisan migrate --force
+php artisan storage:link
+php artisan optimize
+php artisan admin:create
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+`admin:create` is interactive. It prompts for name, email, password, and password confirmation. Password input is hidden, no default password exists, and the command refuses to replace or promote an existing user. Never commit or record administrator credentials in source-controlled files or shell scripts.
 
-## Security Vulnerabilities
+Configure the web server so its document root is `backend/public`, and supervise the PHP/web processes with the operating system's service manager.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Subsequent deployments
 
-## License
+Back up the database and uploaded files before applying code or schema changes. Review pending migrations first:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan migrate:status
+```
+
+For deployments that require maintenance mode:
+
+```bash
+php artisan down
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan optimize
+php artisan up
+```
+
+Do not run `migrate:fresh`, `migrate:reset`, or other destructive database commands in production. Do not regenerate `APP_KEY` after production data is in use.
+
+## Scheduler
+
+The scheduler is required for daily pruning of expired Sanctum tokens. Run Laravel's scheduler every minute from cron:
+
+```cron
+* * * * * cd /path/to/backend && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Confirm registered work with:
+
+```bash
+php artisan schedule:list
+```
+
+No queue worker is required by current application features. Reassess this if queued mail, notifications, or jobs are introduced.
+
+## Upload storage
+
+Uploads use Laravel's `public` disk and are stored under:
+
+```text
+storage/app/public
+```
+
+`php artisan storage:link` creates the required `public/storage` link. The web-server user must be able to write to `storage` and `bootstrap/cache`.
+
+The current deployment requires a persistent local filesystem. It is not suitable for ephemeral/serverless or multi-instance hosting without moving uploads to shared or object storage. Include `storage/app/public` in backups.
+
+## HTTPS and reverse proxies
+
+`APP_URL` must use the externally reachable HTTPS backend origin so generated image and avatar URLs do not cause mixed-content errors.
+
+Frontend and backend may use separate origins. When they do, list every allowed frontend origin exactly in `CORS_ALLOWED_ORIGINS` and serve both applications over HTTPS.
+
+If TLS terminates at a reverse proxy or load balancer, configure Laravel's trusted proxies to match the real infrastructure and forward the correct scheme and client IP. Do not trust arbitrary proxies. Incorrect proxy configuration can generate HTTP asset URLs and undermine IP-based rate limiting.
+
+## Backups and rollback
+
+Before production changes:
+
+- Back up the database.
+- Back up `storage/app/public`.
+- Test restoration procedures rather than assuming backups are usable.
+- Preserve the previous application release for rollback.
+- Plan database migration and code rollback together; reverting code alone may not reverse schema changes safely.
+
+Never overwrite the only backup during deployment.
+
+## Testing and verification
+
+Run the automated suite and deployment checks from the backend directory:
+
+```bash
+php artisan test
+./vendor/bin/pint --test
+php artisan route:list --path=api
+php artisan schedule:list
+```
+
+On Windows, use `vendor\\bin\\pint.bat --test` for Pint when required by the shell.
+
+The project currently uses persistent local upload storage. The scheduler is required in production; a queue worker is not currently required.
