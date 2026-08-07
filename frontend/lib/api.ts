@@ -281,6 +281,9 @@ export const logout = async () => {
 
 export const getCurrentUser = () => request<User>("/user");
 
+export const getProperties = () =>
+  request<Property[]>("/properties", {}, false);
+
 export const createProperty = async (payload: CreatePropertyPayload) => {
   const response = await request<CreatePropertyResponse>("/properties", {
     method: "POST",
