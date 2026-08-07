@@ -12,9 +12,10 @@ import LatestProperties from "../components/LatestProperties";
 import Newsletter from "../components/Newsletter";
 import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
+import type { Property } from "../lib/api";
 
 export default function Home() {
-  const [properties, setProperties] = useState<any[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
   const [city, setCity] = useState("");
 const [type, setType] = useState("");
 const fetchProperties = () => {
@@ -72,7 +73,7 @@ useEffect(() => {
   title={property.title}
   location={`${property.city}, ${property.state}`}
   price={`₹${Number(property.price).toLocaleString("en-IN")}`}
-  image={property.image}
+  image={property.primary_image ?? property.image ?? ""}
   beds={property.bedrooms ?? 0}
   baths={property.bathrooms ?? 0}
   area={`${property.area} sq ft`}

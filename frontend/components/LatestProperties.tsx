@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import PropertyCard from "./PropertyCard";
+import type { Property } from "../lib/api";
 
 export default function LatestProperties() {
-  const [properties, setProperties] = useState<any[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
 
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/properties")
@@ -33,7 +34,7 @@ export default function LatestProperties() {
             title={property.title}
             location={`${property.city}, ${property.state}`}
             price={`₹${Number(property.price).toLocaleString("en-IN")}`}
-            image={property.image}
+            image={property.primary_image ?? property.image ?? ""}
             beds={property.bedrooms ?? 0}
             baths={property.bathrooms ?? 0}
             area={`${property.area} sq ft`}

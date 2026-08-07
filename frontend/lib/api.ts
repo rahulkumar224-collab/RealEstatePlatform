@@ -4,6 +4,50 @@ const TOKEN_STORAGE_KEY = "realestateplatform_auth_token";
 export type InquiryStatus = "new" | "contacted" | "closed";
 export type PropertyVisitStatus = "pending" | "confirmed" | "completed" | "cancelled";
 export type UserRole = "admin" | "buyer";
+export type PropertyType = "buy" | "rent";
+export type PropertyCategory = "residential" | "commercial";
+
+export interface PropertyImage {
+  id: number;
+  image_path: string;
+  image_url: string;
+  is_primary: boolean;
+  sort_order: number;
+}
+
+export interface Property {
+  id: number;
+  title: string;
+  description: string;
+  price: string | number;
+  city: string;
+  state: string;
+  type: PropertyType;
+  category: PropertyCategory;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  area: number;
+  image?: string | null;
+  primary_image?: string | null;
+  images?: PropertyImage[];
+  images_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CreatePropertyPayload {
+  title: string;
+  description: string;
+  price: number;
+  city: string;
+  state: string;
+  type: PropertyType;
+  category: PropertyCategory;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  area: number;
+  image?: string | null;
+}
 
 export interface User {
   id: number;
@@ -87,6 +131,19 @@ type PropertyVisitStatusResponse = {
   visit: PropertyVisit;
 };
 
+type CreatePropertyResponse = {
+  success: boolean;
+  message: string;
+  property: Property;
+};
+
+type UploadPropertyImagesResponse = {
+  success: boolean;
+  message: string;
+  property_id: number;
+  images: PropertyImage[];
+};
+
 export class ApiError extends Error {
   constructor(message: string, public readonly status: number) {
     super(message);
@@ -162,7 +219,10 @@ const request = async <T>(
   const headers = new Headers(options.headers);
   headers.set("Accept", "application/json");
 
-  if (options.body) {
+  const isFormData =
+    typeof FormData !== "undefined" && options.body instanceof FormData;
+
+  if (options.body && !isFormData) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -220,6 +280,28 @@ export const logout = async () => {
 };
 
 export const getCurrentUser = () => request<User>("/user");
+
+export const createProperty = async (payload: CreatePropertyPayload) => {
+  const response = await request<CreatePropertyResponse>("/properties", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return response.property;
+};
+
+export const uploadPropertyImages = async (
+  propertyId: number,
+  images: File[],
+) => {
+  const formData = new FormData();
+  images.forEach((image) => formData.append("images[]", image));
+
+  const response = await request<UploadPropertyImagesResponse>(
+    `/properties/${propertyId}/images`,
+    { method: "POST", body: formData },
+  );
+  return response.images;
+};
 
 export const getInquiries = async () => {
   const response = await request<InquiriesResponse>("/inquiries");

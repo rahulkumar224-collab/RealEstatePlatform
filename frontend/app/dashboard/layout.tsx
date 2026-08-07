@@ -8,6 +8,7 @@ import { clearAuthToken, logout } from "../../lib/api";
 
 const navigation = [
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/add-property", label: "Post Property" },
   { href: "/dashboard/inquiries", label: "Inquiries" },
   { href: "/dashboard/property-visits", label: "Property Visits" },
 ];
