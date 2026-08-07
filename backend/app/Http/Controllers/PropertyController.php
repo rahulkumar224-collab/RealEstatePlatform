@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePropertyRequest;
+use App\Http\Requests\UpdatePropertyRequest;
 use App\Models\Property;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PropertyController extends Controller
 {
@@ -132,14 +134,32 @@ class PropertyController extends Controller
     }
 
     public function update(
-        Request $request,
+        UpdatePropertyRequest $request,
         Property $property
     ) {
-        //
+        $property->update($request->validated());
+        $property->refresh();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Property updated successfully.',
+            'property' => $property,
+        ]);
     }
 
     public function destroy(Property $property)
     {
-        //
+        $propertyId = $property->id;
+
+        $property->delete();
+
+        Storage::disk('public')->deleteDirectory(
+            'properties/' . $propertyId
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Property deleted successfully.',
+        ]);
     }
 }
