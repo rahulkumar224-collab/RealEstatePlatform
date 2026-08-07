@@ -4,8 +4,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\PropertyImageController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PropertyVisitController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,7 +15,7 @@ use App\Http\Controllers\PropertyVisitController;
 Route::post(
     '/properties/{property}/visits',
     [PropertyVisitController::class, 'store']
-);
+)->middleware('throttle:visit-submission');
 
 Route::get('/test', function () {
     return response()->json([
@@ -24,8 +24,10 @@ Route::get('/test', function () {
     ]);
 });
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register'])
+    ->middleware('throttle:register');
+Route::post('/login', [AuthController::class, 'login'])
+    ->middleware('throttle:login');
 
 /*
 |--------------------------------------------------------------------------
@@ -45,7 +47,7 @@ Route::get('/properties/{property}', [PropertyController::class, 'show']);
 Route::post(
     '/properties/{property}/inquiries',
     [InquiryController::class, 'store']
-);
+)->middleware('throttle:inquiry-submission');
 
 /*
 |--------------------------------------------------------------------------
