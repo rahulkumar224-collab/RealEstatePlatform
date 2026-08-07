@@ -15,6 +15,11 @@ class PropertyImageController extends Controller
         Property $property
     ): JsonResponse {
         $uploadedImages = [];
+        $maxSortOrder = $property->images()->max('sort_order');
+        $nextSortOrder = $maxSortOrder === null
+            ? 0
+            : $maxSortOrder + 1;
+        $hasExistingImages = $property->images()->exists();
 
         foreach ($request->file('images') as $index => $image) {
             $path = $image->store(
@@ -25,9 +30,9 @@ class PropertyImageController extends Controller
             $propertyImage = PropertyImage::create([
                 'property_id' => $property->id,
                 'image_path' => $path,
-                'is_primary' => $property->images()->count() === 0
+                'is_primary' => ! $hasExistingImages
                     && $index === 0,
-                'sort_order' => $property->images()->count(),
+                'sort_order' => $nextSortOrder + $index,
             ]);
 
             $uploadedImages[] = [
