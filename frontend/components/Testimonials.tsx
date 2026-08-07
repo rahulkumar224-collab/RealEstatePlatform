@@ -8,7 +8,7 @@ export default function Testimonials() {
       <div className="grid md:grid-cols-3 gap-8">
         <div className="bg-white shadow-lg rounded-xl p-6">
           <p className="text-gray-600">
-            "Excellent platform! I found my dream home in just a few days."
+            &ldquo;Excellent platform! I found my dream home in just a few days.&rdquo;
           </p>
 
           <h3 className="mt-6 font-bold text-lg">
@@ -22,7 +22,7 @@ export default function Testimonials() {
 
         <div className="bg-white shadow-lg rounded-xl p-6">
           <p className="text-gray-600">
-            "Very easy to use and verified properties saved me a lot of time."
+            &ldquo;Very easy to use and verified properties saved me a lot of time.&rdquo;
           </p>
 
           <h3 className="mt-6 font-bold text-lg">
@@ -36,7 +36,7 @@ export default function Testimonials() {
 
         <div className="bg-white shadow-lg rounded-xl p-6">
           <p className="text-gray-600">
-            "Professional agents and excellent customer support."
+            &ldquo;Professional agents and excellent customer support.&rdquo;
           </p>
 
           <h3 className="mt-6 font-bold text-lg">

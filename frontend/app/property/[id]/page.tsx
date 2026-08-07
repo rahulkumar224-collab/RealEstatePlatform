@@ -1,32 +1,23 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import Link from "next/link";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import PropertyCard from "../../../components/PropertyCard";
+import {
+  ApiError,
+  getProperties,
+  getProperty,
+  Property,
+  submitPropertyInquiry,
+  submitPropertyVisit,
+} from "../../../lib/api";
 
-type PropertyImage = {
-  id: number;
-  image_path: string;
-  image_url: string;
-  is_primary: boolean;
-  sort_order: number;
-};
+type LoadState = "loading" | "ready" | "not-found" | "load-error";
 
-type Property = {
-  id: number;
-  title: string;
-  description: string;
-  price: string;
-  city: string;
-  state: string;
-  primary_image: string;
-  images?: PropertyImage[];
-  images_count?: number;
-  bedrooms: number | null;
-  bathrooms: number | null;
-  area: number;
-  category: string;
-  type: string;
-};
+type FormMessage = {
+  type: "success" | "error";
+  text: string;
+} | null;
 
 export default function PropertyDetails({
   params,
@@ -34,9 +25,13 @@ export default function PropertyDetails({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const propertyId = Number(id);
+  const invalidId = !Number.isInteger(propertyId) || propertyId < 1;
 
   const [property, setProperty] = useState<Property | null>(null);
   const [relatedProperties, setRelatedProperties] = useState<Property[]>([]);
+  const [loadState, setLoadState] = useState<LoadState>("loading");
+  const [loadError, setLoadError] = useState("");
 
   const [favorite, setFavorite] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
@@ -49,101 +44,99 @@ export default function PropertyDetails({
 
   const [visitDate, setVisitDate] = useState("");
   const [visitTime, setVisitTime] = useState("");
+  const inquiryLock = useRef(false);
+  const visitLock = useRef(false);
+  const [isSubmittingInquiry, setIsSubmittingInquiry] = useState(false);
+  const [isSubmittingVisit, setIsSubmittingVisit] = useState(false);
+  const [inquiryResult, setInquiryResult] = useState<FormMessage>(null);
+  const [visitResult, setVisitResult] = useState<FormMessage>(null);
+
+  const loadProperty = useCallback(async () => {
+    if (invalidId) return;
+
+    setLoadState("loading");
+    setLoadError("");
+
+    try {
+      const data = await getProperty(propertyId);
+      setProperty(data);
+      setSelectedImage(data.primary_image ?? data.image ?? "");
+      setMessage(`Hi, I'm interested in ${data.title}. Please contact me.`);
+      setLoadState("ready");
+    } catch (caughtError) {
+      setProperty(null);
+
+      if (caughtError instanceof ApiError && caughtError.status === 404) {
+        setLoadState("not-found");
+      } else {
+        setLoadError(
+          caughtError instanceof ApiError
+            ? caughtError.message
+            : "Property could not be loaded.",
+        );
+        setLoadState("load-error");
+      }
+    }
+  }, [invalidId, propertyId]);
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/properties/${id}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Property could not be loaded.");
-        }
+    if (invalidId) return;
 
-        return response.json();
-      })
-      .then((data: Property) => {
-        setProperty(data);
-        setSelectedImage(data.primary_image);
+    const loadTimer = window.setTimeout(() => {
+      void loadProperty();
+      void getProperties()
+        .then((all) => {
+          setRelatedProperties(
+            all.filter((item) => item.id !== propertyId).slice(0, 3),
+          );
+        })
+        .catch(() => setRelatedProperties([]));
+    }, 0);
 
-        setMessage(
-          `Hi, I'm interested in ${data.title}. Please contact me.`,
-        );
-      })
-      .catch((error) => {
-        console.error("Property fetch error:", error);
-      });
-
-    fetch("http://127.0.0.1:8000/api/properties")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Related properties could not be loaded.");
-        }
-
-        return response.json();
-      })
-      .then((all: Property[]) => {
-        const filtered = all
-          .filter((item) => item.id !== Number(id))
-          .slice(0, 3);
-
-        setRelatedProperties(filtered);
-      })
-      .catch((error) => {
-        console.error("Related properties fetch error:", error);
-      });
-  }, [id]);
+    return () => window.clearTimeout(loadTimer);
+  }, [invalidId, loadProperty, propertyId]);
 
   const handleInquiry = async () => {
+    if (inquiryLock.current) return;
+
     if (!name || !email || !phone || !message) {
-      alert("Please fill all inquiry fields.");
+      setInquiryResult({ type: "error", text: "Please fill all inquiry fields." });
       return;
     }
 
+    inquiryLock.current = true;
+    setIsSubmittingInquiry(true);
+    setInquiryResult(null);
+
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/properties/${id}/inquiries`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            phone,
-            message,
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Inquiry could not be submitted.",
-        );
-      }
-
-      alert(data.message);
+      const successMessage = await submitPropertyInquiry(propertyId, {
+        name,
+        email,
+        phone,
+        message,
+      });
 
       setName("");
       setEmail("");
       setPhone("");
-
-      setMessage(
-        `Hi, I'm interested in ${property?.title}. Please contact me.`,
-      );
-    } catch (error) {
-      console.error("Inquiry submission error:", error);
-
-      alert(
-        error instanceof Error
-          ? error.message
+      setMessage(`Hi, I'm interested in ${property?.title}. Please contact me.`);
+      setInquiryResult({ type: "success", text: successMessage });
+    } catch (caughtError) {
+      setInquiryResult({
+        type: "error",
+        text: caughtError instanceof ApiError
+          ? caughtError.message
           : "Something went wrong while submitting inquiry.",
-      );
+      });
+    } finally {
+      inquiryLock.current = false;
+      setIsSubmittingInquiry(false);
     }
   };
 
   const handleVisitBooking = async () => {
+    if (visitLock.current) return;
+
     if (
       !name ||
       !email ||
@@ -151,53 +144,40 @@ export default function PropertyDetails({
       !visitDate ||
       !visitTime
     ) {
-      alert(
-        "Please enter your name, email, phone, visit date and visit time.",
-      );
+      setVisitResult({
+        type: "error",
+        text: "Please enter your name, email, phone, visit date and visit time.",
+      });
       return;
     }
 
+    visitLock.current = true;
+    setIsSubmittingVisit(true);
+    setVisitResult(null);
+
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/properties/${id}/visits`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            phone,
-            visit_date: visitDate,
-            visit_time: visitTime,
-            notes: message || null,
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-            "Property visit could not be scheduled.",
-        );
-      }
-
-      alert(data.message);
+      const successMessage = await submitPropertyVisit(propertyId, {
+        name,
+        email,
+        phone,
+        visit_date: visitDate,
+        visit_time: visitTime,
+        notes: message || null,
+      });
 
       setVisitDate("");
       setVisitTime("");
-    } catch (error) {
-      console.error("Visit booking error:", error);
-
-      alert(
-        error instanceof Error
-          ? error.message
+      setVisitResult({ type: "success", text: successMessage });
+    } catch (caughtError) {
+      setVisitResult({
+        type: "error",
+        text: caughtError instanceof ApiError
+          ? caughtError.message
           : "Something went wrong while booking the visit.",
-      );
+      });
+    } finally {
+      visitLock.current = false;
+      setIsSubmittingVisit(false);
     }
   };
 
@@ -210,10 +190,29 @@ export default function PropertyDetails({
     }
   };
 
-  if (!property) {
+  if (invalidId || loadState === "not-found") {
     return (
-      <div className="py-20 text-center text-xl">
-        Loading...
+      <div className="mx-auto max-w-3xl px-6 py-20 text-center">
+        <h1 className="text-4xl font-bold">Property not found</h1>
+        <p className="mt-3 text-gray-600">The requested property may have been removed.</p>
+        <Link href="/" className="mt-6 inline-block rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white">Back to Home</Link>
+      </div>
+    );
+  }
+
+  if (loadState === "loading") {
+    return <div className="py-20 text-center text-xl text-gray-600">Loading property...</div>;
+  }
+
+  if (loadState === "load-error" || !property) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-20 text-center">
+        <h1 className="text-4xl font-bold">Property could not be loaded.</h1>
+        <p role="alert" className="mt-3 text-gray-600">{loadError || "Please try again."}</p>
+        <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+          <button type="button" onClick={() => void loadProperty()} className="rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white">Retry</button>
+          <Link href="/" className="rounded-lg border border-blue-600 px-5 py-3 font-semibold text-blue-700">Back to Home</Link>
+        </div>
       </div>
     );
   }
@@ -265,7 +264,7 @@ export default function PropertyDetails({
           className="relative block w-full overflow-hidden rounded-2xl"
         >
           <img
-            src={selectedImage || property.primary_image}
+            src={selectedImage || property.primary_image || property.image || ""}
             alt={property.title}
             className="h-[500px] w-full object-cover shadow-lg transition duration-300 hover:scale-[1.01]"
           />
@@ -299,11 +298,11 @@ export default function PropertyDetails({
             <button
               type="button"
               onClick={() =>
-                setSelectedImage(property.primary_image)
+                setSelectedImage(property.primary_image ?? property.image ?? "")
               }
             >
               <img
-                src={property.primary_image}
+                src={property.primary_image ?? property.image ?? ""}
                 alt={property.title}
                 className="h-28 w-40 cursor-pointer rounded-lg border-4 border-blue-600 object-cover"
               />
@@ -647,10 +646,20 @@ export default function PropertyDetails({
           <button
             type="button"
             onClick={handleInquiry}
-            className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-4 text-lg font-bold text-white transition duration-300 hover:scale-[1.02]"
+            disabled={isSubmittingInquiry}
+            className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-4 text-lg font-bold text-white transition duration-300 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Send Inquiry
+            {isSubmittingInquiry ? "Sending inquiry..." : "Send Inquiry"}
           </button>
+
+          {inquiryResult && (
+            <p
+              role={inquiryResult.type === "error" ? "alert" : "status"}
+              className={`rounded-lg p-4 ${inquiryResult.type === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}
+            >
+              {inquiryResult.text}
+            </p>
+          )}
         </div>
       </div>
 
@@ -687,10 +696,20 @@ export default function PropertyDetails({
           <button
             type="button"
             onClick={handleVisitBooking}
-            className="w-full rounded-xl bg-indigo-600 py-4 font-bold text-white transition hover:bg-indigo-700"
+            disabled={isSubmittingVisit}
+            className="w-full rounded-xl bg-indigo-600 py-4 font-bold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            📅 Book Visit
+            {isSubmittingVisit ? "Booking visit..." : "📅 Book Visit"}
           </button>
+
+          {visitResult && (
+            <p
+              role={visitResult.type === "error" ? "alert" : "status"}
+              className={`rounded-lg p-4 ${visitResult.type === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}
+            >
+              {visitResult.text}
+            </p>
+          )}
         </div>
       </div>
 
@@ -728,7 +747,7 @@ export default function PropertyDetails({
               price={`₹${Number(item.price).toLocaleString(
                 "en-IN",
               )}`}
-              image={item.primary_image}
+              image={item.primary_image ?? item.image ?? ""}
               beds={item.bedrooms ?? 0}
               baths={item.bathrooms ?? 0}
               area={`${item.area} sq ft`}
@@ -764,7 +783,7 @@ export default function PropertyDetails({
           )}
 
           <img
-            src={selectedImage || property.primary_image}
+            src={selectedImage || property.primary_image || property.image || ""}
             alt={property.title}
             onClick={(event) => event.stopPropagation()}
             className="max-h-[90vh] max-w-[80vw] rounded-xl object-contain"

@@ -49,6 +49,27 @@ export interface CreatePropertyPayload {
   image?: string | null;
 }
 
+export type PropertyFilters = {
+  city?: string;
+  type?: PropertyType | "";
+};
+
+export type SubmitPropertyInquiryPayload = {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+};
+
+export type SubmitPropertyVisitPayload = {
+  name: string;
+  email: string;
+  phone: string;
+  visit_date: string;
+  visit_time: string;
+  notes?: string | null;
+};
+
 export type UpdatePropertyPayload = CreatePropertyPayload;
 
 export interface User {
@@ -155,6 +176,11 @@ type UploadPropertyImagesResponse = {
   message: string;
   property_id: number;
   images: PropertyImage[];
+};
+
+type PublicSubmissionResponse = {
+  success: boolean;
+  message: string;
 };
 
 type PropertyImageActionResponse = {
@@ -299,8 +325,20 @@ export const logout = async () => {
 
 export const getCurrentUser = () => request<User>("/user");
 
-export const getProperties = () =>
-  request<Property[]>("/properties", {}, false);
+export const getProperties = (filters: PropertyFilters = {}) => {
+  const query = new URLSearchParams();
+  const city = filters.city?.trim();
+
+  if (city) query.set("city", city);
+  if (filters.type) query.set("type", filters.type);
+
+  const queryString = query.toString();
+  return request<Property[]>(
+    `/properties${queryString ? `?${queryString}` : ""}`,
+    {},
+    false,
+  );
+};
 
 export const getProperty = (id: number) =>
   request<Property>(`/properties/${id}`, {}, false);
@@ -362,6 +400,30 @@ export const makePrimaryPropertyImage = async (
     `/properties/${propertyId}/images/${imageId}/primary`,
     { method: "PUT" },
   );
+};
+
+export const submitPropertyInquiry = async (
+  propertyId: number,
+  payload: SubmitPropertyInquiryPayload,
+) => {
+  const response = await request<PublicSubmissionResponse>(
+    `/properties/${propertyId}/inquiries`,
+    { method: "POST", body: JSON.stringify(payload) },
+    false,
+  );
+  return response.message;
+};
+
+export const submitPropertyVisit = async (
+  propertyId: number,
+  payload: SubmitPropertyVisitPayload,
+) => {
+  const response = await request<PublicSubmissionResponse>(
+    `/properties/${propertyId}/visits`,
+    { method: "POST", body: JSON.stringify(payload) },
+    false,
+  );
+  return response.message;
 };
 
 export const getInquiries = async () => {
