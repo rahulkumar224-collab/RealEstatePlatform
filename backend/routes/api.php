@@ -17,13 +17,6 @@ Route::post(
     [PropertyVisitController::class, 'store']
 )->middleware('throttle:visit-submission');
 
-Route::get('/test', function () {
-    return response()->json([
-        'success' => true,
-        'message' => 'RealEstatePlatform Backend API Working Successfully 🚀',
-    ]);
-});
-
 Route::post('/register', [AuthController::class, 'register'])
     ->middleware('throttle:register');
 Route::post('/login', [AuthController::class, 'login'])
